@@ -7,6 +7,7 @@ import { classificationModeLabels, sourceLabels } from '../data/mockData.js'
 
 export default function MemoryClusters({
   analysisResult,
+  uploadedPhotoPreviews = [],
   featuredClusterId,
   onBack,
   onOpenCluster,
@@ -15,6 +16,13 @@ export default function MemoryClusters({
 }) {
   const [basisPanelOpen, setBasisPanelOpen] = useState(false)
   const clusters = analysisResult.memoryClusters
+  const uploadedPhotoByName = new Map(
+    uploadedPhotoPreviews.map((photo) => [photo.fileName || photo.name || photo.title, photo]),
+  )
+  const uploadedPhotoById = new Map(uploadedPhotoPreviews.map((photo) => [photo.id, photo]))
+  const uploadedPhotoByIndex = new Map(
+    uploadedPhotoPreviews.map((photo, index) => [photo.uploadIndex ?? index, photo]),
+  )
   const firstClusterId = featuredClusterId || analysisResult.featuredClusterId || clusters[0]?.id || 'graduation-2018'
   const modeLabel = classificationModeLabels[analysisResult.selectedClassificationMode] || '按人生阶段整理'
   const pageCopy = {
@@ -82,7 +90,38 @@ export default function MemoryClusters({
             featured={cluster.id === firstClusterId}
             uploadedPhotos={(analysisResult.uploadClassificationResults || []).filter(
               (item) => item.assignedClusterId === cluster.id,
-            )}
+            ).map((item, index) => {
+              const preview =
+                uploadedPhotoById.get(item.originalUploadId || item.id) ||
+                uploadedPhotoByIndex.get(item.uploadIndex ?? index) ||
+                uploadedPhotoByName.get(item.fileName || item.name || item.title) ||
+                {}
+              return {
+                ...preview,
+                ...item,
+                originalUploadId: item.originalUploadId || preview.id,
+                uploadIndex: item.uploadIndex ?? preview.uploadIndex ?? index,
+                src:
+                  item.src ||
+                  item.previewUrl ||
+                  item.dataUrl ||
+                  preview.src ||
+                  preview.previewUrl ||
+                  preview.dataUrl,
+                previewUrl:
+                  item.previewUrl ||
+                  item.src ||
+                  item.dataUrl ||
+                  preview.previewUrl ||
+                  preview.src ||
+                  preview.dataUrl,
+                dataUrl: item.dataUrl || preview.dataUrl,
+                objectUrl: item.objectUrl || preview.objectUrl,
+                source: 'uploaded',
+                isUploaded: true,
+                isPlaceholder: false,
+              }
+            })}
             onOpen={onOpenCluster}
             onRename={onRenameCluster}
             onDelete={onDeleteCluster}

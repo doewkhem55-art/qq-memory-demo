@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { sourceLabels } from '../data/mockData.js'
+import { resolveClusterPhotos } from '../data/photoAssets.js'
 import GlassCard from './GlassCard.jsx'
 import PhotoCard from './PhotoCard.jsx'
 import Tag from './Tag.jsx'
@@ -26,16 +27,7 @@ export default function MemoryClusterCard({
   const [editing, setEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState(cluster.title)
   const canManage = cluster.isUserArchive && onRename && onDelete
-  const previews = [
-    ...uploadedPhotos.map((photo) => ({
-      id: photo.id,
-      title: photo.fileName,
-      src: photo.previewUrl,
-      badge: '本地',
-    })),
-    ...(cluster.previewPhotos || []),
-    ...(cluster.photoAssets || []),
-  ].slice(0, 4)
+  const previews = resolveClusterPhotos({ cluster, uploadedPhotos, minCount: 3, maxCount: 4 })
 
   const handleRename = () => {
     const nextTitle = draftTitle.trim()
@@ -52,29 +44,37 @@ export default function MemoryClusterCard({
 
   return (
     <GlassCard className={`group rounded-[1.6rem] p-5 transition hover:-translate-y-1 hover:border-sky-200/25 hover:bg-white/[0.068] ${featured ? 'md:col-span-2' : ''}`} as="article">
-      <div className={`relative mb-5 h-48 overflow-hidden rounded-[1.35rem] bg-gradient-to-br ${cluster.coverGradient} shadow-2xl shadow-sky-950/24`}>
+      <div className="relative mb-4 h-48 overflow-hidden rounded-[1.35rem] shadow-2xl shadow-sky-950/24">
         <CoverTile item={previews[0]} title={cluster.title} large />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/8 to-white/5" />
-        <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-3">
-          <div className="min-w-0">
-            <div className="max-w-full truncate rounded-full bg-black/30 px-3 py-1 text-xs font-medium text-white backdrop-blur-xl">
-              {previews[0]?.badge || cluster.highlight || '记忆相册'}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/74 via-black/12 to-white/5" />
+        <div className="absolute inset-x-3 bottom-3 grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="min-w-0 rounded-2xl bg-black/24 px-3 py-2 backdrop-blur-xl">
+            <div className="truncate text-[11px] font-medium text-sky-50/85">
+              {previews[0]?.isUploaded ? '本地上传' : cluster.highlight || '记忆相册'}
+            </div>
+            <div className="mt-1 truncate text-sm font-semibold text-white">
+              {previews[0]?.title || cluster.title}
             </div>
           </div>
           {previews.length > 1 ? (
-            <div className="grid grid-cols-3 gap-2">
-              {previews.slice(1, 4).map((item, index) => (
-                <CoverTile key={item.id || `${cluster.id}-cover-${index}`} item={item} title={cluster.tags?.[index] || cluster.title} />
+            <div className="hidden grid-cols-2 gap-2 sm:grid">
+              {previews.slice(1, 3).map((item, index) => (
+                <CoverTile
+                  key={item.id || `${cluster.id}-cover-${index}`}
+                  item={item}
+                  title={cluster.tags?.[index] || cluster.title}
+                />
               ))}
             </div>
           ) : null}
         </div>
       </div>
-      <div className="-mt-14 mb-5 flex items-end justify-between px-4">
-        <span className="relative rounded-full border border-white/15 bg-black/26 px-3 py-1 text-xs text-white backdrop-blur-xl">
+
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <span className="max-w-full truncate rounded-full border border-white/12 bg-white/[0.055] px-3 py-1 text-xs text-slate-200">
           {featured ? '重点记忆包' : cluster.highlight}
         </span>
-        <span className="relative rounded-full bg-black/18 px-3 py-1 text-xs text-white/[0.82] backdrop-blur-xl">
+        <span className="shrink-0 rounded-full bg-white/[0.045] px-3 py-1 text-xs text-slate-300">
           {cluster.timeRange}
         </span>
       </div>
@@ -121,7 +121,7 @@ export default function MemoryClusterCard({
       </div>
 
       <div className="mt-5 rounded-[1.35rem] border border-white/[0.075] bg-white/[0.035] p-4">
-        <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 text-sm font-semibold text-sky-100">
             <ShieldCheck size={15} />
             AI 置信度 {cluster.aiConfidence}%
@@ -147,7 +147,7 @@ export default function MemoryClusterCard({
         {cluster.classificationReasons?.length ? (
           <ul className="mt-3 space-y-1.5 text-xs leading-5 text-slate-400">
             {cluster.classificationReasons.slice(0, 2).map((reason) => (
-              <li key={reason}>· {reason}</li>
+              <li key={reason}>- {reason}</li>
             ))}
           </ul>
         ) : null}
@@ -168,20 +168,56 @@ export default function MemoryClusterCard({
 
 function CoverTile({ item, title, large = false }) {
   const label = item?.title || title
-  const src = item?.src
+  const src = item?.src || item?.previewUrl || item?.dataUrl || item?.objectUrl
 
   if (large) {
-    return <PhotoCard title={label} src={src} className="absolute inset-0 rounded-[1.35rem] shadow-none" aspect="" />
+    if (item?.isUploaded && src) {
+      return (
+        <img
+          src={src}
+          alt={label}
+          className="absolute inset-0 h-full w-full rounded-[1.35rem] object-cover"
+          onError={(event) => {
+            event.currentTarget.style.display = 'none'
+          }}
+        />
+      )
+    }
+
+    return (
+      <PhotoCard
+        title={label}
+        src={src}
+        source={item?.source}
+        isPlaceholder={item?.isPlaceholder}
+        showMeta={false}
+        showDescription={false}
+        className="absolute inset-0 rounded-[1.35rem] shadow-none"
+        aspect=""
+      />
+    )
   }
 
-  return <PhotoCard title={label} src={src} className="h-14 w-16 rounded-2xl shadow-lg shadow-black/24" aspect="" />
+  return (
+    <PhotoCard
+      title={label}
+      src={src}
+      source={item?.source}
+      isPlaceholder={item?.isPlaceholder}
+      compact
+      showMeta={false}
+      showDescription={false}
+      className="h-16 w-20 rounded-2xl shadow-lg shadow-black/24"
+      aspect=""
+    />
+  )
 }
 
 function Metric({ icon: Icon, label }) {
   return (
-    <div className="flex items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.045] px-3 py-2">
-      <Icon size={15} className="text-sky-200" />
-      <span>{label}</span>
+    <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.045] px-3 py-2">
+      <Icon size={15} className="shrink-0 text-sky-200" />
+      <span className="truncate">{label}</span>
     </div>
   )
 }

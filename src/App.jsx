@@ -6,6 +6,7 @@ import MemoryClusters from './pages/MemoryClusters.jsx'
 import MemoryDetail from './pages/MemoryDetail.jsx'
 import MemoryPage from './pages/MemoryPage.jsx'
 import { mockAnalysisResult } from './data/mockData.js'
+import { getThemePhotoAssets } from './data/photoAssets.js'
 
 const initialDemoState = {
   selectedSources: ['qq_album', 'qq_zone', 'friends', 'local_album'],
@@ -17,6 +18,43 @@ const initialDemoState = {
   analysisResult: null,
   activeClusterId: 'graduation-2018',
   generatedPage: null,
+}
+
+function photoUrlOf(photo = {}) {
+  return photo.src || photo.previewUrl || photo.dataUrl || photo.objectUrl || photo.url || ''
+}
+
+function mergeUploadPreviewFields(uploadResults = [], uploadedPreviews = []) {
+  return uploadResults.map((result, index) => {
+    const preview =
+      uploadedPreviews.find(
+        (item) =>
+          item.id === result.id ||
+          item.id === result.originalUploadId ||
+          item.uploadIndex === result.uploadIndex ||
+          item.fileName === result.fileName ||
+          item.name === result.fileName,
+      ) ||
+      uploadedPreviews[index] ||
+      {}
+    const src = photoUrlOf(result) || photoUrlOf(preview)
+
+    return {
+      ...preview,
+      ...result,
+      title: result.title || result.fileName || preview.title || preview.fileName || preview.name,
+      fileName: result.fileName || preview.fileName || preview.name,
+      originalUploadId: result.originalUploadId || preview.id,
+      uploadIndex: result.uploadIndex ?? preview.uploadIndex ?? index,
+      src,
+      previewUrl: result.previewUrl || preview.previewUrl || src,
+      dataUrl: result.dataUrl || preview.dataUrl,
+      objectUrl: result.objectUrl || preview.objectUrl,
+      source: 'uploaded',
+      isUploaded: true,
+      isPlaceholder: false,
+    }
+  })
 }
 
 export default function App() {
@@ -80,8 +118,14 @@ export default function App() {
     const title = requestedTitle || labelByMode[mode] || '最近自动归档'
     const uploadResults = photos.map((photo, index) => ({
       id: `recent-upload-${clusterId}-${index}`,
+      originalUploadId: photo.id,
+      uploadIndex: photo.uploadIndex ?? index,
+      title: photo.title || photo.fileName,
       fileName: photo.fileName,
-      previewUrl: photo.previewUrl,
+      src: photo.src || photo.previewUrl || photo.dataUrl || photo.objectUrl || photo.url,
+      previewUrl: photo.previewUrl || photo.src || photo.dataUrl || photo.objectUrl || photo.url,
+      dataUrl: photo.dataUrl,
+      objectUrl: photo.objectUrl,
       uploadedAt: photo.uploadedAt,
       assignedClusterId: clusterId,
       assignedClusterTitle: title,
@@ -108,7 +152,7 @@ export default function App() {
       aiConfidence: 86,
       dataSources: ['local_album', 'qq_album'],
       localUploadCount: photos.length,
-      photoAssets: [],
+      photoAssets: getThemePhotoAssets('recent'),
       previewPhotos: photos.map((photo, index) => ({
         id: `recent-preview-${clusterId}-${index}`,
         title: photo.fileName,
@@ -239,7 +283,13 @@ export default function App() {
         onComplete={(result) =>
           setDemoState((current) => ({
             ...current,
-            analysisResult: result,
+            analysisResult: {
+              ...result,
+              uploadClassificationResults: mergeUploadPreviewFields(
+                result.uploadClassificationResults || [],
+                current.uploadedPhotoPreviews || current.uploadedFiles || [],
+              ),
+            },
             activeClusterId: result.featuredClusterId || result.memoryClusters[0]?.id || 'graduation-2018',
           }))
         }
@@ -250,9 +300,10 @@ export default function App() {
 
   if (route === 'clusters') {
     return (
-      <MemoryClusters
-        analysisResult={currentAnalysis}
-        featuredClusterId={currentAnalysis.featuredClusterId || currentAnalysis.memoryClusters[0]?.id}
+        <MemoryClusters
+          analysisResult={currentAnalysis}
+          uploadedPhotoPreviews={demoState.uploadedPhotoPreviews}
+          featuredClusterId={currentAnalysis.featuredClusterId || currentAnalysis.memoryClusters[0]?.id}
         onBack={() => navigate('home')}
         onOpenCluster={(clusterId) => {
           setDemoState((current) => ({

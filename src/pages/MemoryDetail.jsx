@@ -4,10 +4,12 @@ import Button from '../components/Button.jsx'
 import GlassCard from '../components/GlassCard.jsx'
 import PageShell from '../components/PageShell.jsx'
 import PhotoCard from '../components/PhotoCard.jsx'
+import PhotoGrid from '../components/PhotoGrid.jsx'
 import PrivacyNotice from '../components/PrivacyNotice.jsx'
 import Tag from '../components/Tag.jsx'
 import Timeline from '../components/Timeline.jsx'
 import { comments, photos, posts, repairSuggestions, timelineEvents } from '../data/mockData.js'
+import { resolveClusterPhotos } from '../data/photoAssets.js'
 import { generateMemoryPage, repairMissingMemories } from '../services/aiMemoryService.js'
 
 export default function MemoryDetail({ cluster, analysisResult, onBack, onGenerated }) {
@@ -32,6 +34,12 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
   const uploadedPhotos = (analysisResult.uploadClassificationResults || []).filter(
     (item) => item.assignedClusterId === currentCluster.id,
   )
+  const displayPhotos = resolveClusterPhotos({
+    cluster: currentCluster,
+    uploadedPhotos,
+    minCount: 3,
+    maxCount: 6,
+  })
   const repair = repairSuggestions.find((item) => item.clusterId === currentCluster.id)
   const events = timelineEvents[currentCluster.id] || [
     { id: `${currentCluster.id}-event`, date: currentCluster.timeRange, title: currentCluster.title, description: currentCluster.summary },
@@ -62,7 +70,10 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
             <div className={`mb-6 h-48 overflow-hidden rounded-[1.35rem] bg-gradient-to-br ${currentCluster.coverGradient}`}>
               <PhotoCard
                 title={currentCluster.title}
-                src={uploadedPhotos[0]?.previewUrl || currentCluster.previewPhotos?.[0]?.src || currentCluster.photoAssets?.[0]?.src}
+                src={displayPhotos[0]?.src}
+                description={displayPhotos[0]?.description}
+                source={displayPhotos[0]?.source}
+                isPlaceholder={displayPhotos[0]?.isPlaceholder}
                 badge={currentCluster.highlight}
                 className="h-full rounded-[1.35rem] shadow-none"
                 aspect=""
@@ -121,17 +132,7 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
               <Camera size={19} className="text-sky-200" />
               照片墙
             </h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {uploadedPhotos.map((photo) => (
-                <PhotoTile key={photo.id} title={photo.fileName} src={photo.previewUrl} badge="本地上传" />
-              ))}
-              {currentCluster.photoAssets.map((asset) => (
-                <PhotoTile key={asset.id} title={asset.title} src={asset.src} badge="素材预留" />
-              ))}
-              {clusterPhotos.map((photo, index) => (
-                <PhotoTile key={photo.id} title={photo.title} index={index} />
-              ))}
-            </div>
+            <PhotoGrid photos={displayPhotos} />
           </GlassCard>
 
           <div className="grid gap-5 md:grid-cols-2">

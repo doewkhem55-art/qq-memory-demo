@@ -1,3 +1,5 @@
+import { getPhotoAssetsForCluster, getThemePhotoAssets } from './photoAssets.js'
+
 export const sourceLabels = {
   qq_album: 'QQ 空间旧相册',
   qq_zone: '说说评论',
@@ -159,16 +161,26 @@ export const friends = [
   { id: 'friend-005', name: '室友', avatarGradient: 'from-indigo-300 to-slate-700', relation: '大学室友', interactionCount: 58, coAppearCount: 16 },
 ]
 
-const photoAsset = (id, title, folder, file, description) => ({
-  id,
-  title,
-  src: `/demo-photos/${folder}/${file}`,
-  type: 'image',
-  source: 'demo_photo_asset',
-  description,
-})
+const photoAsset = (id, title, folder, file, description) => {
+  const themeMap = {
+    graduation: 'graduation',
+    campus: 'campus',
+    'military-training': 'military-training',
+    'family-travel': 'family-travel',
+    friends: 'friends',
+    'qq-memory': 'friends',
+  }
+  const theme = themeMap[folder] || folder
+  const fallbackIndex = id.endsWith('-2') ? 1 : 0
+  return {
+    ...getThemePhotoAssets(theme)[fallbackIndex],
+    id,
+    title,
+    description,
+  }
+}
 
-export const memoryClusters = [
+const baseMemoryClusters = [
   {
     id: 'graduation-2018',
     title: '高中毕业季',
@@ -293,6 +305,11 @@ export const memoryClusters = [
     relatedFriendIds: ['friend-001', 'friend-002', 'friend-003', 'friend-005'],
   },
 ]
+
+export const memoryClusters = baseMemoryClusters.map((cluster) => ({
+  ...cluster,
+  photoAssets: getPhotoAssetsForCluster(cluster, 3),
+}))
 
 export const repairSuggestions = [
   {

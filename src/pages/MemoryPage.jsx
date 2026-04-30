@@ -5,8 +5,19 @@ import DisplayTitle from '../components/DisplayTitle.jsx'
 import GlassCard from '../components/GlassCard.jsx'
 import PageShell from '../components/PageShell.jsx'
 import PhotoCard from '../components/PhotoCard.jsx'
+import PhotoGrid from '../components/PhotoGrid.jsx'
 import PrivacyNotice from '../components/PrivacyNotice.jsx'
 import { classificationModeLabels, comments, photos, posts } from '../data/mockData.js'
+import { resolveClusterPhotos } from '../data/photoAssets.js'
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '')
+    reader.onerror = () => resolve('')
+    reader.readAsDataURL(file)
+  })
+}
 
 export default function MemoryPage({
   generatedPage,
@@ -47,6 +58,12 @@ export default function MemoryPage({
   const uploadedPhotos = (analysisResult.uploadClassificationResults || []).filter(
     (item) => item.assignedClusterId === currentCluster.id,
   )
+  const displayPhotos = resolveClusterPhotos({
+    cluster: currentCluster,
+    uploadedPhotos,
+    minCount: 3,
+    maxCount: 6,
+  })
   const featuredPost =
     currentCluster.relatedPostsData?.[0] ||
     posts.find((post) => post.id === page.featuredPostId)
@@ -71,7 +88,10 @@ export default function MemoryPage({
           <div className={`relative min-h-72 overflow-hidden bg-gradient-to-br ${currentCluster.coverGradient} p-8`}>
             <PhotoCard
               title={currentCluster.title}
-              src={uploadedPhotos[0]?.previewUrl || currentCluster.previewPhotos?.[0]?.src || currentCluster.photoAssets?.[0]?.src}
+              src={displayPhotos[0]?.src}
+              description={displayPhotos[0]?.description}
+              source={displayPhotos[0]?.source}
+              isPlaceholder={displayPhotos[0]?.isPlaceholder}
               className="absolute inset-0 rounded-none opacity-80 shadow-none"
               aspect=""
             />
@@ -99,17 +119,7 @@ export default function MemoryPage({
                 <Camera size={19} className="text-sky-200" />
                 精选照片
               </h3>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {uploadedPhotos.map((photo) => (
-                  <PhotoTile key={photo.id} title={photo.fileName} src={photo.previewUrl} badge="本地上传" />
-                ))}
-                {currentCluster.photoAssets.slice(0, 2).map((asset) => (
-                  <PhotoTile key={asset.id} title={asset.title} src={asset.src} badge="素材预留" />
-                ))}
-                {selectedPhotos.map((photo, index) => (
-                  <PhotoTile key={photo.id} title={photo.title} index={index} />
-                ))}
-              </div>
+              <PhotoGrid photos={displayPhotos} />
             </section>
 
             <div className="grid gap-5 md:grid-cols-2">
@@ -271,12 +281,26 @@ function NewArchivePanel({
     ['custom', '输入新的 AI 归档指令'],
   ]
 
-  const handleFiles = (event) => {
-    const files = Array.from(event.target.files || []).map((file) => ({
-      id: `${file.name}-${file.lastModified}-${file.size}`,
-      fileName: file.name,
-      previewUrl: URL.createObjectURL(file),
-      uploadedAt: new Date().toISOString(),
+  const handleFiles = async (event) => {
+    const files = await Promise.all(Array.from(event.target.files || []).map(async (file, index) => {
+      const objectUrl = URL.createObjectURL(file)
+      const dataUrl = await readFileAsDataUrl(file)
+      const previewUrl = dataUrl || objectUrl
+      return {
+        id: `${file.name}-${file.lastModified}-${file.size}`,
+        uploadIndex: index,
+        title: file.name,
+        fileName: file.name,
+        name: file.name,
+        src: previewUrl,
+        previewUrl,
+        dataUrl,
+        objectUrl,
+        source: 'uploaded',
+        isUploaded: true,
+        isPlaceholder: false,
+        uploadedAt: new Date().toISOString(),
+      }
     }))
     onFiles(files)
   }

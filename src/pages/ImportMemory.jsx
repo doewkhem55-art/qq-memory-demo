@@ -69,6 +69,15 @@ const classificationOptions = [
   },
 ]
 
+function readFileAsDataUrl(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '')
+    reader.onerror = () => resolve('')
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function ImportMemory({ initialState, onBack, onStart }) {
   const [selectedSources, setSelectedSources] = useState(initialState.selectedSources)
   const [uploadedFiles, setUploadedFiles] = useState(initialState.uploadedFiles)
@@ -85,21 +94,34 @@ export default function ImportMemory({ initialState, onBack, onStart }) {
     )
   }
 
-  const handleFiles = (event) => {
+  const handleFiles = async (event) => {
     uploadedFiles.forEach((file) => {
       if (file.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(file.previewUrl)
     })
 
-    const files = Array.from(event.target.files || []).map((file) => ({
-      id: `${file.name}-${file.lastModified}-${file.size}`,
-      fileName: file.name,
-      name: file.name,
-      file,
-      size: file.size,
-      type: file.type,
-      lastModified: file.lastModified,
-      previewUrl: URL.createObjectURL(file),
-      uploadedAt: new Date().toISOString(),
+    const files = await Promise.all(Array.from(event.target.files || []).map(async (file, index) => {
+      const objectUrl = URL.createObjectURL(file)
+      const dataUrl = await readFileAsDataUrl(file)
+      const previewUrl = dataUrl || objectUrl
+      return {
+        id: `${file.name}-${file.lastModified}-${file.size}`,
+        uploadIndex: index,
+        title: file.name,
+        fileName: file.name,
+        name: file.name,
+        file,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        src: previewUrl,
+        previewUrl,
+        objectUrl,
+        dataUrl,
+        source: 'uploaded',
+        isUploaded: true,
+        isPlaceholder: false,
+        uploadedAt: new Date().toISOString(),
+      }
     }))
     setUploadedFiles(files)
   }

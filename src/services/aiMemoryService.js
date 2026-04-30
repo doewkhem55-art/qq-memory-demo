@@ -4,6 +4,7 @@ import {
   mockAnalysisResult,
   repairSuggestions,
 } from '../data/mockData.js'
+import { getPhotoAssetsForCluster } from '../data/photoAssets.js'
 
 const baseAnalysisStages = [
   '正在读取你的分类偏好……',
@@ -24,13 +25,17 @@ const clusterById = (clusterId) =>
 
 const cloneCluster = (sourceId, overrides) => {
   const base = clusterById(sourceId)
-  return {
+  const cluster = {
     ...base,
     ...overrides,
     photoAssets: overrides.photoAssets || base.photoAssets,
     relatedPhotoIds: overrides.relatedPhotoIds || base.relatedPhotoIds,
     relatedPostIds: overrides.relatedPostIds || base.relatedPostIds,
     relatedFriendIds: overrides.relatedFriendIds || base.relatedFriendIds,
+  }
+  return {
+    ...cluster,
+    photoAssets: getPhotoAssetsForCluster(cluster, 3),
   }
 }
 
@@ -180,6 +185,7 @@ function enrichCluster(cluster) {
 
   return {
     ...cluster,
+    photoAssets: getPhotoAssetsForCluster(cluster, 3),
     relatedPostsData,
     relatedCommentsData,
     relatedFriendsData: template.friends,
@@ -743,8 +749,14 @@ function classifyUploadedFiles(uploadedFiles = [], classificationMode = 'life_st
     const cluster = findClusterIn(clusters, assignedClusterId)
     return {
       id: `upload-result-${file.id || index}`,
+      originalUploadId: file.id,
+      uploadIndex: file.uploadIndex ?? index,
+      title: file.title || file.fileName || file.name,
       fileName: file.fileName || file.name,
-      previewUrl: file.previewUrl,
+      src: file.src || file.previewUrl || file.dataUrl || file.objectUrl || file.url,
+      previewUrl: file.previewUrl || file.src || file.dataUrl || file.objectUrl || file.url,
+      dataUrl: file.dataUrl,
+      objectUrl: file.objectUrl,
       uploadedAt: file.uploadedAt,
       assignedClusterId,
       assignedClusterTitle: cluster.title,
