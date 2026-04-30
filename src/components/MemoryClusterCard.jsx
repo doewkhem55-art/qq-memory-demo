@@ -144,10 +144,12 @@ export default function MemoryClusterCard({
             </span>
           ))}
         </div>
-        {cluster.id.startsWith('custom-') ? (
-          <p className="mt-3 text-xs leading-5 text-slate-400">
-            Demo 说明：当前为模拟分类，未来可接入真实图片识别和多模态语义理解。
-          </p>
+        {cluster.classificationReasons?.length ? (
+          <ul className="mt-3 space-y-1.5 text-xs leading-5 text-slate-400">
+            {cluster.classificationReasons.slice(0, 2).map((reason) => (
+              <li key={reason}>· {reason}</li>
+            ))}
+          </ul>
         ) : null}
       </div>
 

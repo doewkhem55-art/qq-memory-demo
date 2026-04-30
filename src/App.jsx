@@ -100,7 +100,7 @@ export default function App() {
       postCount: 1,
       commentCount: 2,
       friendCount: mode === 'relation' ? 3 : 2,
-      summary: `这是本次持续归档生成的新记忆包，包含 ${photos.length} 张近期照片。当前为浏览器会话中的 Mock 归档结果。`,
+      summary: `这是本次持续归档生成的新记忆包，包含 ${photos.length} 张近期照片。当前结果保存在浏览器会话中，用于展示持续归档体验。`,
       highlight: '新归档',
       tags: ['近期', '自动归档', 'QQ 空间'],
       coverGradient: 'from-sky-300/70 via-cyan-500/40 to-violet-700/70',

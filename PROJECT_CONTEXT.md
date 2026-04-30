@@ -17,7 +17,8 @@ Vite + React + Tailwind CSS + lucide-react。
 - 第一阶段：首页高保真首屏，基本完成。
 - 第二阶段：完整 Demo 主链路跑通，基本完成。
 - 2.5 阶段：视觉风格统一与精修，基本完成。
-- 下一阶段：第三阶段，AI 分类可信度增强 + 相册内容真实感补齐 + 相册管理产品化。
+- 第三阶段 3A：AI 分类可信度增强，已完成。
+- 下一阶段：第三阶段 3B，相册内容真实感补齐。
 
 ## 当前已完成页面
 
@@ -46,6 +47,13 @@ Vite + React + Tailwind CSS + lucide-react。
 - 从今天开始持续归档
 - 新归档相册可回到 MemoryClusters
 - 新归档相册可编辑和删除
+- customPrompt 能明显影响 AI 分类结果
+- 结果页展示用户输入的 AI 分类指令
+- 每个 memoryCluster 增加 classificationReasons
+- MemoryClusters 增加“查看 AI 分类依据”面板
+- 修复了“查看 AI 分类依据”入口重复的问题
+- UI 中已弱化 Mock AI 工程化表达
+- 保留未来多模态 AI 接口预留说明
 - aiMemoryService.js 作为未来 AI 接口服务层
 
 ## 当前必须保留的要求
@@ -64,11 +72,6 @@ Vite + React + Tailwind CSS + lucide-react。
 
 ## 当前还存在的问题
 
-- AI 自动分类结果仍然偏模板化，需要增强分类可信度
-- 用户输入自定义分类后，结果需要更明显地跟随用户意图变化
-- 每个记忆包需要展示更具体的 AI 分类依据
-- UI 中不应频繁出现 Mock AI 等工程化表达
-- 需要增加“查看 AI 分类依据”面板
 - 所有相册内容还需要补齐真实感图片或高质量照片占位
 - 默认自动分类相册也需要统一支持重命名、编辑描述、设置可见范围、隐藏
 - 后续需要准备 public/demo-photos 安全素材包

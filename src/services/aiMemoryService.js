@@ -34,6 +34,68 @@ const cloneCluster = (sourceId, overrides) => {
   }
 }
 
+const reasonTextByBasis = {
+  时间相近: '照片时间集中在相近阶段，适合合并为同一段回忆。',
+  共同人物重复出现: '多张照片中识别到重复出现的人物关系。',
+  说说关键词匹配: '相关说说与评论中出现了稳定的主题关键词。',
+  本地照片补全: '本地补全照片与该记忆包的时间、人物或场景线索接近。',
+  人物关系匹配: '好友关系与共同出现记录指向同一类关系记忆。',
+  地点变化: '地点线索显示生活阶段发生了明显切换。',
+  场景主题一致: '照片场景、动态语义与互动内容集中在同一主题。',
+  好友互动频率: '评论、留言和同框记录显示出高频互动关系。',
+  评论关系匹配: '评论作者与照片人物存在稳定关联。',
+  地点相近: '照片地点和动态位置线索相互接近。',
+  校园地点: '地点、人物和动态内容集中在校园环境。',
+  亲人关系: '互动称谓和共同出现人物显示出家人关系。',
+  同学关系: '人物关系与校园阶段共同指向同学记忆。',
+  同行人物: '同一批人物在旅行或出行场景中反复出现。',
+  日期线索: '日期、节日或阶段信息可作为归类辅助依据。',
+  祝福关键词: '动态与评论中出现生日、祝福等主题词。',
+}
+
+const normalizePrompt = (prompt = '') => prompt.replace(/\s+/g, '').toLowerCase()
+
+const uniqueList = (items = []) => Array.from(new Set(items.filter(Boolean)))
+
+function ensureClassificationReasons(cluster, extraReasons = []) {
+  const metricReason = `${cluster.photoCount} 张照片、${cluster.postCount} 条说说与 ${cluster.commentCount} 条评论共同参与归类。`
+  const basisReasons = (cluster.classificationBasis || [])
+    .map((item) => reasonTextByBasis[item] || `${item} 是本次归类的重要线索。`)
+    .slice(0, 3)
+
+  return {
+    ...cluster,
+    classificationReasons: uniqueList([
+      ...(cluster.classificationReasons || []),
+      ...extraReasons,
+      metricReason,
+      ...basisReasons,
+    ]).slice(0, 5),
+  }
+}
+
+function withPromptInfluence(cluster, customPrompt = '', classificationMode = 'custom') {
+  if (!customPrompt.trim()) return ensureClassificationReasons(cluster)
+  const modeLabel = classificationModeLabels[classificationMode] || '当前整理方式'
+
+  return ensureClassificationReasons(
+    {
+      ...cluster,
+      summary: cluster.summary.includes('根据你的整理偏好')
+        ? cluster.summary
+        : `根据你的整理偏好「${customPrompt}」，${cluster.summary}`,
+      classificationBasis: uniqueList([
+        '用户整理偏好',
+        ...(cluster.classificationBasis || []),
+      ]),
+    },
+    [
+      `根据用户指令「${customPrompt}」调整本次分类维度与排序。`,
+      `在「${modeLabel}」基础上优先保留与指令相关的记忆包。`,
+    ],
+  )
+}
+
 const contentTemplates = {
   family: {
     posts: ['和家人一起出门的周末，天气刚刚好。', '翻到这组照片，才想起那天大家都笑得很开心。'],
@@ -60,7 +122,7 @@ const contentTemplates = {
       { id: 'appearance-friend', name: '许然', relation: '常评论外貌变化的好友', interactionCount: 74, coAppearCount: 12, avatarGradient: 'from-cyan-200 to-teal-600' },
       { id: 'appearance-classmate', name: '陈可', relation: '同学', interactionCount: 64, coAppearCount: 10, avatarGradient: 'from-violet-300 to-fuchsia-600' },
     ],
-    summary: '该记忆包主要模拟分析发色、服饰和形象变化，当前为 Demo Mock 分类。',
+    summary: '该记忆包主要根据图片标签、人物外观线索和形象变化进行演示归类。',
   },
   school: {
     posts: ['最后一次班级聚餐，大家以后都要闪闪发光。', '高考结束啦，突然不知道明天该几点起床。'],
@@ -77,7 +139,7 @@ const contentTemplates = {
     friends: [
       { id: 'default-friend', name: '老友', relation: '高频互动好友', interactionCount: 58, coAppearCount: 9, avatarGradient: 'from-indigo-300 to-slate-700' },
     ],
-    summary: 'AI 根据照片、说说、评论和互动关系生成了阶段性记忆摘要。',
+    summary: '系统根据照片、说说、评论和互动关系生成了阶段性记忆摘要。',
   },
 }
 
@@ -128,6 +190,7 @@ function enrichCluster(cluster) {
       summaryText: template.summary,
     },
     previewPhotos: previewTitles,
+    classificationReasons: ensureClassificationReasons(cluster).classificationReasons,
   }
 }
 
@@ -254,9 +317,15 @@ const selfOtherClusters = [
     id: 'custom-self',
     title: '关于我自己的回忆',
     highlight: '自我记忆',
-    summary: 'AI 将独照、个人动态和成长阶段线索整理为关于你自己的记忆片段。',
+    summary: '系统将独照、个人动态和成长阶段线索整理为关于你自己的记忆片段。',
     tags: ['自我', '成长', '个人'],
     classificationBasis: ['自我相关照片', '个人动态关键词', '时间阶段变化'],
+    classificationReasons: [
+      '用户指令中识别到“我自己 / 个人”为主要分类维度。',
+      '多条动态围绕个人状态、自拍和成长变化。',
+      '本地相册与 QQ 空间旧照片中存在个人形象变化线索。',
+      '照片和说说内容更集中呈现个人阶段变化，而非多人共同事件。',
+    ],
     aiConfidence: 91,
     dataSources: ['qq_album', 'qq_zone', 'local_album'],
   }),
@@ -264,9 +333,14 @@ const selfOtherClusters = [
     id: 'custom-others',
     title: '和他人的回忆',
     highlight: '关系记忆',
-    summary: 'AI 将共同出现的人、评论互动和好友关系整理为你与他人共同经历的片段。',
+    summary: '系统将共同出现的人、评论互动和好友关系整理为你与他人共同经历的片段。',
     tags: ['他人', '关系', '共同出现'],
     classificationBasis: ['共同出现人物', '好友互动关系', '评论语义匹配'],
+    classificationReasons: [
+      '根据用户指令识别“别人 / 他人”为关系分类维度。',
+      '多张照片存在共同出现人物。',
+      '评论与互动记录显示高频好友关系。',
+    ],
     aiConfidence: 92,
   }),
   cloneCluster('close-friends', {
@@ -276,6 +350,11 @@ const selfOtherClusters = [
     summary: '系统优先整理与朋友相关的照片、留言和互动频率。',
     tags: ['朋友', '互动', '留言'],
     classificationBasis: ['好友互动关系', '评论语义匹配', '共同出现人物'],
+    classificationReasons: [
+      '根据用户指令识别“朋友”为优先关系维度。',
+      '评论、留言与同框记录显示朋友互动频率较高。',
+      '相关照片多集中在聚会、旅行和毕业后的联系场景。',
+    ],
     aiConfidence: 89,
   }),
   cloneCluster('family-trip', {
@@ -285,6 +364,11 @@ const selfOtherClusters = [
     summary: '系统把家人共同出现、旅行地点和亲人留言归为家人回忆。',
     tags: ['家人', '亲人', '旅行'],
     classificationBasis: ['共同出现人物', '亲人关系', '本地照片补全'],
+    classificationReasons: [
+      '根据用户指令识别“家人”为关系分类维度。',
+      '家庭成员在旅行与报到照片中共同出现。',
+      '亲人留言与节假日时间线增强了归类可信度。',
+    ],
     aiConfidence: 90,
   }),
   cloneCluster('graduation-2018', {
@@ -294,6 +378,11 @@ const selfOtherClusters = [
     summary: '毕业合影、聚餐和校园评论被整理为同学相关记忆。',
     tags: ['同学', '校园', '毕业'],
     classificationBasis: ['共同出现人物', '校园场景', '评论语义匹配'],
+    classificationReasons: [
+      '根据用户指令识别“同学”为关系分类维度。',
+      '毕业、聚餐和校园合影中反复出现同班人物。',
+      '说说评论呈现明显的同学互动语气。',
+    ],
     aiConfidence: 88,
   }),
   cloneCluster('college-start', {
@@ -311,77 +400,202 @@ const customDimensionClusters = {
   color: [
     cloneCluster('close-friends', {
       id: 'custom-hair-black',
-      title: '黑发记忆',
-      highlight: '发色模拟分类',
-      summary: '当前为 Demo 模拟分类。未来可通过多模态视觉识别分析照片中的黑发、服饰颜色和人物特征。',
-      tags: ['黑色', '发色', '人物'],
-      classificationBasis: ['发色关键词', '人物视觉特征', 'Demo 模拟分类'],
+      title: '黑发时期',
+      highlight: '发色线索',
+      summary: '根据你的发色整理偏好，优先将黑发、深色发型和人物形象稳定的照片归为这一时期。',
+      tags: ['黑发', '发色', '人物'],
+    classificationBasis: ['用户整理偏好', '发色线索', '人物视觉特征'],
+    classificationReasons: [
+        '用户指令中识别到“头发颜色 / 发色”为主要分类维度。',
+        '当前演示环境根据图片标签与模拟视觉识别结果归类。',
+        '未来可接入多模态模型识别发色、服饰和人物特征。',
+        '黑发、深色发型和人物形象稳定片段被优先聚合。',
+      ],
       aiConfidence: 82,
     }),
     cloneCluster('graduation-2018', {
       id: 'custom-hair-light',
       title: '浅色发色记忆',
-      highlight: '发色模拟分类',
-      summary: '当前为 Demo 模拟分类。未来可识别金色、黄色、白色、棕色等浅色发色与光照变化。',
+      highlight: '发色线索',
+      summary: '根据你的发色整理偏好，将浅色、染发、强光下发色变化明显的片段集中展示。',
       tags: ['浅色', '金色', '棕色'],
-      classificationBasis: ['颜色语义', '发色视觉特征', 'Demo 模拟分类'],
+      classificationBasis: ['用户整理偏好', '颜色语义', '发色视觉特征'],
+      classificationReasons: [
+        '根据用户指令识别“头发颜色 / 发色”为主要分类维度。',
+        '图片标签与描述中出现浅色、棕色、光照变化等线索。',
+        '未来可进一步识别染发、发型和拍摄光线差异。',
+      ],
       aiConfidence: 79,
     }),
     cloneCluster('college-start', {
       id: 'custom-hair-unclear',
       title: '戴帽子或难以识别发色',
       highlight: '待识别照片',
-      summary: '当前为 Demo 模拟分类。未来可标记帽子、背光、遮挡等导致发色难以识别的照片。',
+      summary: '根据你的发色整理偏好，将戴帽子、背光、遮挡或合影中发色不清晰的照片单独放置。',
       tags: ['帽子', '遮挡', '待识别'],
-      classificationBasis: ['遮挡判断', '低置信度标记', 'Demo 模拟分类'],
+      classificationBasis: ['用户整理偏好', '遮挡判断', '低置信度标记'],
+      classificationReasons: [
+        '根据用户指令识别“发色”为分类维度。',
+        '部分照片存在帽子、背光或人物较小导致发色难以判断。',
+        '低置信度照片被单独归档，方便用户后续确认。',
+      ],
       aiConfidence: 74,
+    }),
+    cloneCluster('college-start', {
+      id: 'custom-appearance-change',
+      title: '形象变化',
+      highlight: '形象变化',
+      summary: '根据发色、发型、服饰与时间线变化，将个人形象变化较明显的照片整理在一起。',
+      tags: ['形象', '成长', '变化'],
+      classificationBasis: ['用户整理偏好', '个人动态关键词', '视觉变化'],
+      classificationReasons: [
+        '根据用户指令识别“发色 / 形象”为整理方向。',
+        '照片和动态中存在发型、服饰、阶段变化等线索。',
+        '形象变化与时间阶段交叉验证后被单独生成记忆包。',
+      ],
+      aiConfidence: 83,
     }),
     cloneCluster('class-dinner', {
       id: 'custom-hair-group',
       title: '合影中的发色变化',
       highlight: '合影分析',
-      summary: '当前为 Demo 模拟分类。未来可在合影中识别多个人物的发色变化和形象差异。',
+      summary: '根据你的发色整理偏好，将多人合影中发色差异明显或人物形象变化明显的照片集中展示。',
       tags: ['合影', '发色变化', '多人'],
-      classificationBasis: ['共同出现人物', '发色变化', 'Demo 模拟分类'],
+      classificationBasis: ['用户整理偏好', '共同出现人物', '发色变化'],
+      classificationReasons: [
+        '根据用户指令识别“发色”为分类维度。',
+        '合影中存在多位人物共同出现，发色差异更容易形成对比。',
+        '未来可接入多模态模型识别多人发色和人物特征。',
+      ],
       aiConfidence: 80,
-    }),
-    cloneCluster('college-start', {
-      id: 'custom-appearance-change',
-      title: '我的形象变化',
-      highlight: '形象变化',
-      summary: '当前为 Demo 模拟分类。未来可结合发色、服饰、时间线分析个人形象变化。',
-      tags: ['形象', '成长', '变化'],
-      classificationBasis: ['个人动态关键词', '视觉变化', 'Demo 模拟分类'],
-      aiConfidence: 83,
     }),
   ],
   outfit: [
-    cloneCluster('graduation-2018', { id: 'custom-uniform', title: '校服记忆', highlight: '服饰模拟分类', tags: ['校服', '校园'], classificationBasis: ['服饰关键词', '校园场景', 'Demo 模拟分类'], aiConfidence: 84 }),
-    cloneCluster('college-start', { id: 'custom-daily-outfit', title: '日常穿搭', highlight: '服饰模拟分类', tags: ['穿搭', '日常'], classificationBasis: ['外观关键词', '日常场景', 'Demo 模拟分类'], aiConfidence: 81 }),
-    cloneCluster('family-trip', { id: 'custom-travel-outfit', title: '旅行穿搭', highlight: '服饰模拟分类', tags: ['旅行', '穿搭'], classificationBasis: ['地点线索', '服饰颜色', 'Demo 模拟分类'], aiConfidence: 80 }),
-    cloneCluster('graduation-2018', { id: 'custom-graduation-dress', title: '毕业礼服', highlight: '服饰模拟分类', tags: ['毕业', '礼服'], classificationBasis: ['毕业关键词', '服饰识别预留', 'Demo 模拟分类'], aiConfidence: 78 }),
-    cloneCluster('college-start', { id: 'custom-look-change', title: '形象变化', highlight: '外观变化', tags: ['形象', '变化'], classificationBasis: ['外观关键词', '时间变化', 'Demo 模拟分类'], aiConfidence: 82 }),
+    cloneCluster('graduation-2018', { id: 'custom-uniform', title: '校服记忆', highlight: '服饰线索', tags: ['校服', '校园'], classificationBasis: ['服饰关键词', '校园场景', '用户整理偏好'], aiConfidence: 84 }),
+    cloneCluster('college-start', { id: 'custom-daily-outfit', title: '日常穿搭', highlight: '服饰线索', tags: ['穿搭', '日常'], classificationBasis: ['外观关键词', '日常场景', '用户整理偏好'], aiConfidence: 81 }),
+    cloneCluster('family-trip', { id: 'custom-travel-outfit', title: '旅行穿搭', highlight: '服饰线索', tags: ['旅行', '穿搭'], classificationBasis: ['地点线索', '服饰颜色', '用户整理偏好'], aiConfidence: 80 }),
+    cloneCluster('graduation-2018', { id: 'custom-graduation-dress', title: '毕业礼服', highlight: '服饰线索', tags: ['毕业', '礼服'], classificationBasis: ['毕业关键词', '服饰识别预留', '用户整理偏好'], aiConfidence: 78 }),
+    cloneCluster('college-start', { id: 'custom-look-change', title: '形象变化', highlight: '外观变化', tags: ['形象', '变化'], classificationBasis: ['外观关键词', '时间变化', '用户整理偏好'], aiConfidence: 82 }),
   ],
   life: [
-    cloneCluster('graduation-2018', { id: 'custom-primary-school', title: '小学时光', highlight: '人生阶段', tags: ['小学', '成长'], classificationBasis: ['阶段关键词', '时间线推断', 'Demo 模拟分类'], aiConfidence: 76 }),
-    cloneCluster('graduation-2018', { id: 'custom-middle-school', title: '初中片段', highlight: '人生阶段', tags: ['初中', '同学'], classificationBasis: ['阶段关键词', '同学关系', 'Demo 模拟分类'], aiConfidence: 77 }),
-    cloneCluster('graduation-2018', { id: 'custom-high-school', title: '高中毕业季', highlight: '人生阶段', tags: ['高中', '毕业'], classificationBasis: ['阶段关键词', '毕业语义', 'Demo 模拟分类'], aiConfidence: 90 }),
-    cloneCluster('college-start', { id: 'custom-college-start', title: '大学开学', highlight: '人生阶段', tags: ['大学', '开学'], classificationBasis: ['阶段关键词', '校园地点', 'Demo 模拟分类'], aiConfidence: 88 }),
-    cloneCluster('college-start', { id: 'custom-growth-change', title: '成长变化', highlight: '人生阶段', tags: ['成长', '变化'], classificationBasis: ['时间线变化', '个人动态关键词', 'Demo 模拟分类'], aiConfidence: 82 }),
+    cloneCluster('graduation-2018', { id: 'custom-primary-school', title: '小学时光', highlight: '人生阶段', tags: ['小学', '成长'], classificationBasis: ['阶段关键词', '时间线推断', '用户整理偏好'], aiConfidence: 76 }),
+    cloneCluster('graduation-2018', { id: 'custom-middle-school', title: '初中片段', highlight: '人生阶段', tags: ['初中', '同学'], classificationBasis: ['阶段关键词', '同学关系', '用户整理偏好'], aiConfidence: 77 }),
+    cloneCluster('graduation-2018', { id: 'custom-high-school', title: '高中毕业季', highlight: '人生阶段', tags: ['高中', '毕业'], classificationBasis: ['阶段关键词', '毕业语义', '用户整理偏好'], aiConfidence: 90 }),
+    cloneCluster('college-start', { id: 'custom-college-start', title: '大学开学', highlight: '人生阶段', tags: ['大学', '开学'], classificationBasis: ['阶段关键词', '校园地点', '用户整理偏好'], aiConfidence: 88 }),
+    cloneCluster('college-start', { id: 'custom-growth-change', title: '成长变化', highlight: '人生阶段', tags: ['成长', '变化'], classificationBasis: ['时间线变化', '个人动态关键词', '用户整理偏好'], aiConfidence: 82 }),
+  ],
+  emotion: [
+    cloneCluster('class-dinner', {
+      id: 'custom-happy-moments',
+      title: '开心时刻',
+      highlight: '情绪线索',
+      summary: '根据你的情绪整理偏好，将评论语气轻松、照片场景明亮、互动积极的片段优先归为开心时刻。',
+      tags: ['开心', '生日', '旅行'],
+      classificationBasis: ['用户整理偏好', '评论情绪', '轻松场景'],
+      classificationReasons: [
+        '根据用户指令识别“情绪”为分类维度。',
+        '评论语气、照片场景和说说内容呈现积极情绪。',
+        '高频出现聚会、旅行、生日等轻松场景。',
+      ],
+      aiConfidence: 88,
+    }),
+    cloneCluster('graduation-2018', {
+      id: 'custom-farewell',
+      title: '告别与不舍',
+      highlight: '情绪线索',
+      summary: '毕业、分别和约定再见的内容被整理为带有不舍情绪的记忆包。',
+      tags: ['告别', '毕业', '不舍'],
+      classificationBasis: ['用户整理偏好', '告别语义', '毕业阶段'],
+    classificationReasons: [
+        '多条说说出现“毕业、分别、以后再见”等关键词。',
+        '评论语气中包含怀念、祝福和告别表达。',
+        '照片时间集中在毕业季和离别场景。',
+        '高频共同出现人物多为同学与好友。',
+      ],
+      aiConfidence: 86,
+    }),
+    cloneCluster('class-dinner', {
+      id: 'custom-lively-party',
+      title: '热闹聚会',
+      highlight: '情绪场景',
+      summary: '多人同框、聚餐和高频评论互动共同构成热闹氛围的记忆包。',
+      tags: ['热闹', '聚会', '朋友'],
+      classificationBasis: ['用户整理偏好', '共同出现人物', '评论互动'],
+    classificationReasons: [
+        '多人同框照片占比较高。',
+        '说说和评论中出现“聚餐、一起、开心、下次”等表达。',
+        '评论互动数量较高。',
+        '高频好友共同出现次数较多。',
+      ],
+      aiConfidence: 85,
+    }),
+    cloneCluster('college-start', {
+      id: 'custom-alone-daily',
+      title: '独处日常',
+      highlight: '情绪场景',
+      summary: '个人动态、校园日常和低互动照片被归为更安静的独处片段。',
+      tags: ['独处', '日常', '个人'],
+      classificationBasis: ['用户整理偏好', '个人动态关键词', '互动密度较低'],
+      classificationReasons: [
+        '根据用户指令识别“情绪 / 状态”为分类维度。',
+        '部分动态以个人状态、日常记录和校园生活为主。',
+        '互动密度相对较低，更适合归入独处日常。',
+      ],
+      aiConfidence: 80,
+    }),
+    cloneCluster('college-start', {
+      id: 'custom-emotion-growth',
+      title: '成长变化',
+      highlight: '情绪变化',
+      summary: '从毕业到大学开学的阶段变化，被整理为情绪与成长共同变化的记忆包。',
+      tags: ['成长', '变化', '阶段'],
+      classificationBasis: ['用户整理偏好', '时间线变化', '个人动态关键词'],
+      classificationReasons: [
+        '根据用户指令识别“情绪”为分类维度，并结合人生阶段变化。',
+        '毕业、开学和个人状态动态形成连续变化线索。',
+        '情绪表达从告别、不舍逐渐过渡到新的开始。',
+      ],
+      aiConfidence: 84,
+    }),
   ],
   open: [
     cloneCluster('graduation-2018', {
       id: 'custom-ai-open',
-      title: 'AI 自定义分类结果',
+      title: '按你的描述整理',
       highlight: '开放指令',
-      summary: 'AI 已根据你的输入尝试生成分类维度。当前 Demo 使用 Mock 语义解析，未来可接入真实多模态模型进一步识别照片内容。',
-      tags: ['自定义', 'Mock', '待识别'],
-      classificationBasis: ['自然语言指令', 'Mock 语义解析', '未来多模态识别'],
+      summary: '系统已根据你的输入尝试生成分类维度。未来可接入多模态模型进一步识别照片内容。',
+      tags: ['自定义', '待识别', '整理偏好'],
+      classificationBasis: ['自然语言指令', '用户整理偏好', '未来多模态识别'],
+      classificationReasons: [
+        '根据用户输入识别出开放式整理偏好。',
+        '当前优先从照片标签、说说语义和互动关系中寻找相近线索。',
+        '未来可接入多模态模型生成更细粒度的动态分类。',
+      ],
       aiConfidence: 72,
     }),
     ...memoryClusters.slice(0, 5),
   ],
 }
+
+const familyFriendsClusters = [
+  selfOtherClusters[3],
+  selfOtherClusters[2],
+  selfOtherClusters[4],
+  cloneCluster('close-friends', {
+    id: 'custom-frequent-contacts',
+    title: '那些年常联系的人',
+    highlight: '高频互动',
+    summary: '根据你的家人朋友整理偏好，系统把长期评论、留言和共同出现的人整理为高频联系人记忆。',
+    tags: ['联系', '好友', '互动'],
+    classificationBasis: ['用户整理偏好', '好友互动频率', '评论关系匹配'],
+    classificationReasons: [
+      '根据用户指令识别“家人朋友”为关系分类维度。',
+      '评论、留言和共同出现记录显示出长期稳定互动。',
+      '同学、朋友和亲人关系被拆分为更清晰的记忆包。',
+    ],
+    aiConfidence: 93,
+  }),
+]
 
 const assignmentByMode = {
   life_stage: ['graduation-2018', 'college-start'],
@@ -390,29 +604,55 @@ const assignmentByMode = {
 }
 
 function hasSelfIntent(prompt = '') {
-  return /我自己|自己|我的|个人|自我/.test(prompt)
+  const normalized = normalizePrompt(prompt)
+  return /我自己|按我自己|自己和别人|自己和他人|我的|个人|自我/.test(normalized)
 }
 
 function hasOtherIntent(prompt = '') {
-  return /别人|他人|朋友|同学|家人|和别人|和他人/.test(prompt)
+  const normalized = normalizePrompt(prompt)
+  return /别人|他人|朋友|同学|家人|和别人|和他人|自己和别人|自己和他人|我和别人/.test(normalized)
+}
+
+function hasSelfOtherIntent(prompt = '') {
+  const normalized = normalizePrompt(prompt)
+  return /(我自己|自己|我).*(别人|他人)|(别人|他人).*(我自己|自己|我)|按我和别人|按我和他人/.test(normalized)
+}
+
+function hasFamilyFriendIntent(prompt = '') {
+  const normalized = normalizePrompt(prompt)
+  return /家人朋友|家人和朋友|朋友家人|亲人朋友/.test(normalized)
+}
+
+function hasEmotionIntent(prompt = '') {
+  const normalized = normalizePrompt(prompt)
+  return /情绪|开心|难过|快乐|不舍|告别|热闹|独处/.test(normalized)
+}
+
+function hasSchoolStageIntent(prompt = '') {
+  const normalized = normalizePrompt(prompt)
+  return /小学.*初中.*高中.*大学|小学初中高中大学|小学|初中/.test(normalized)
 }
 
 function getCustomPromptDimension(prompt = '') {
-  if (/头发颜色|发色|颜色|红色|黄色|白色|黑色|棕色|金色/.test(prompt)) return 'color'
-  if (/衣服|穿搭|校服|颜色搭配|外观|形象/.test(prompt)) return 'outfit'
-  if (/我自己|自己|我的|个人|别人|他人|朋友|同学|家人|和别人/.test(prompt)) return 'relation'
-  if (/小学|初中|高中|大学|工作|成长/.test(prompt)) return 'life'
-  if (/毕业|旅行|聚餐|生日|军训|校园|日常/.test(prompt)) return 'scene'
+  const normalized = normalizePrompt(prompt)
+  if (/头发颜色|发色|头发.*颜色/.test(normalized)) return 'color'
+  if (hasEmotionIntent(normalized)) return 'emotion'
+  if (hasSchoolStageIntent(normalized) || /高中|大学|工作|成长/.test(normalized)) return 'life'
+  if (/衣服|穿搭|校服|颜色搭配|外观|形象/.test(normalized)) return 'outfit'
+  if (/我自己|自己|我的|个人|别人|他人|朋友|同学|家人|和别人|和他人|家人朋友/.test(normalized)) return 'relation'
+  if (/毕业|旅行|聚餐|生日|军训|校园|日常/.test(normalized)) return 'scene'
   return 'open'
 }
 
 function inferClusterIdFromPrompt(prompt = '') {
   const dimension = getCustomPromptDimension(prompt)
   if (dimension === 'color') return 'custom-hair-black'
+  if (dimension === 'emotion') return 'custom-happy-moments'
   if (dimension === 'outfit') return 'custom-uniform'
   if (dimension === 'life') return 'custom-primary-school'
   if (dimension === 'open') return 'custom-ai-open'
-  if (hasSelfIntent(prompt) && hasOtherIntent(prompt)) return 'custom-self'
+  if (hasSelfOtherIntent(prompt)) return 'custom-self'
+  if (hasFamilyFriendIntent(prompt)) return 'custom-family'
   if (hasSelfIntent(prompt)) return 'custom-self'
   if (hasOtherIntent(prompt)) return 'custom-others'
   if (/家人|亲人/.test(prompt)) return 'relation-family'
@@ -426,21 +666,41 @@ function inferClusterIdFromPrompt(prompt = '') {
 }
 
 function clustersForMode(classificationMode = 'life_stage', customPrompt = '') {
-  if (classificationMode === 'custom' && customPrompt.trim()) {
-    return classifyByCustomPrompt({ customPrompt, uploadedFiles: [], existingAssets: memoryClusters })
+  const trimmedPrompt = customPrompt.trim()
+  if (trimmedPrompt) {
+    const promptClusters = classifyByCustomPrompt({ customPrompt, uploadedFiles: [], existingAssets: memoryClusters })
+    if (classificationMode === 'custom') {
+      return promptClusters.map((cluster) => withPromptInfluence(cluster, customPrompt, classificationMode))
+    }
+    const modeClusters =
+      classificationMode === 'relation'
+        ? relationClusters
+        : classificationMode === 'scene'
+          ? sceneClusters
+          : memoryClusters
+    return blendPromptClustersWithMode(modeClusters, promptClusters, customPrompt, classificationMode)
   }
-  if (customPrompt.trim() && hasSelfIntent(customPrompt) && hasOtherIntent(customPrompt)) {
-    return selfOtherClusters
-  }
-  if (classificationMode === 'custom' && customPrompt.trim() && hasSelfIntent(customPrompt)) {
-    return [selfOtherClusters[0], selfOtherClusters[5], ...memoryClusters].slice(0, 6)
-  }
-  if (classificationMode === 'custom' && customPrompt.trim() && hasOtherIntent(customPrompt)) {
-    return [selfOtherClusters[1], selfOtherClusters[2], selfOtherClusters[3], selfOtherClusters[4], ...relationClusters].slice(0, 6)
-  }
-  if (classificationMode === 'relation') return prioritizeByPrompt(relationClusters, customPrompt)
-  if (classificationMode === 'scene') return prioritizeByPrompt(sceneClusters, customPrompt)
-  return prioritizeByPrompt(memoryClusters, customPrompt)
+  if (classificationMode === 'relation') return relationClusters.map((cluster) => ensureClassificationReasons(cluster))
+  if (classificationMode === 'scene') return sceneClusters.map((cluster) => ensureClassificationReasons(cluster))
+  return memoryClusters.map((cluster) => ensureClassificationReasons(cluster))
+}
+
+function blendPromptClustersWithMode(modeClusters, promptClusters, customPrompt, classificationMode) {
+  const usedIds = new Set()
+  const influencedPromptClusters = promptClusters.map((cluster) =>
+    withPromptInfluence(cluster, customPrompt, classificationMode),
+  )
+  const influencedModeClusters = modeClusters.map((cluster) =>
+    withPromptInfluence(cluster, customPrompt, classificationMode),
+  )
+
+  return [...influencedPromptClusters, ...influencedModeClusters]
+    .filter((cluster) => {
+      if (usedIds.has(cluster.id)) return false
+      usedIds.add(cluster.id)
+      return true
+    })
+    .slice(0, 6)
 }
 
 function findClusterIn(clusters, clusterId) {
@@ -457,8 +717,10 @@ function prioritizeByPrompt(clusters, customPrompt = '') {
 
 function classifyUploadedFiles(uploadedFiles = [], classificationMode = 'life_stage', customPrompt = '', clusters = memoryClusters) {
   const basePreferredIds = (
-    customPrompt.trim() && hasSelfIntent(customPrompt) && hasOtherIntent(customPrompt)
+    customPrompt.trim() && hasSelfOtherIntent(customPrompt)
       ? ['custom-self', 'custom-others']
+      : customPrompt.trim() && hasFamilyFriendIntent(customPrompt)
+        ? ['custom-family', 'custom-friends', 'custom-classmates', 'custom-frequent-contacts']
       : customPrompt.trim() && hasSelfIntent(customPrompt)
         ? ['custom-self', 'custom-campus-self']
         : customPrompt.trim() && hasOtherIntent(customPrompt)
@@ -487,8 +749,8 @@ function classifyUploadedFiles(uploadedFiles = [], classificationMode = 'life_st
       assignedClusterId,
       assignedClusterTitle: cluster.title,
       reason:
-        classificationMode === 'custom'
-          ? `根据自定义指令中的关键词，将这张照片归入「${cluster.title}」。`
+        customPrompt.trim()
+          ? `根据你的整理偏好「${customPrompt}」，将这张照片归入「${cluster.title}」。`
           : `根据「${classificationModeLabels[classificationMode]}」策略，将这张照片归入「${cluster.title}」。`,
       confidence: Math.max(78, 93 - index * 3),
       tags: cluster.tags.slice(0, 3),
@@ -507,10 +769,16 @@ function withUploadedCounts(clusters, uploadClassificationResults) {
       localUploadCount: uploadCount,
       photoCount: cluster.photoCount + uploadCount,
       classificationBasis: uploadCount
-        ? Array.from(new Set([...cluster.classificationBasis, '本地照片补全']))
+        ? uniqueList([...cluster.classificationBasis, '本地照片补全'])
         : cluster.classificationBasis,
+      classificationReasons: uploadCount
+        ? ensureClassificationReasons(cluster, [
+            `${uploadCount} 张本地上传照片被归入该记忆包。`,
+            '本地照片与已有照片、说说或人物关系线索共同参与判断。',
+          ]).classificationReasons
+        : ensureClassificationReasons(cluster).classificationReasons,
       dataSources: uploadCount
-        ? Array.from(new Set([...cluster.dataSources, 'local_album']))
+        ? uniqueList([...cluster.dataSources, 'local_album'])
         : cluster.dataSources,
     }
   })
@@ -526,11 +794,13 @@ function withUploadedCounts(clusters, uploadClassificationResults) {
 export function classifyByCustomPrompt({ customPrompt = '', uploadedFiles = [], existingAssets = [] } = {}) {
   const dimension = getCustomPromptDimension(customPrompt)
   if (dimension === 'color') return customDimensionClusters.color
+  if (dimension === 'emotion') return customDimensionClusters.emotion
   if (dimension === 'outfit') return customDimensionClusters.outfit
   if (dimension === 'life') return customDimensionClusters.life
   if (dimension === 'scene') return sceneClusters
-  if (dimension === 'relation' && hasSelfIntent(customPrompt) && hasOtherIntent(customPrompt)) return selfOtherClusters
-  if (dimension === 'relation') return [selfOtherClusters[1], selfOtherClusters[2], selfOtherClusters[3], selfOtherClusters[4], selfOtherClusters[0]]
+  if (dimension === 'relation' && hasSelfOtherIntent(customPrompt)) return selfOtherClusters.slice(0, 5)
+  if (dimension === 'relation' && hasFamilyFriendIntent(customPrompt)) return familyFriendsClusters
+  if (dimension === 'relation') return [selfOtherClusters[1], selfOtherClusters[2], selfOtherClusters[3], selfOtherClusters[4], familyFriendsClusters[3]]
   return customDimensionClusters.open.slice(0, Math.max(1, Math.min(6, existingAssets.length || 6)))
 }
 
@@ -609,7 +879,7 @@ export async function generateMemoryPage(clusterId, analysisResult) {
     clusterId: cluster.id,
     title: `你的「${cluster.title}」回忆页已生成`,
     timeRange: cluster.timeRange,
-    essay: `AI 已经把「${cluster.title}」中的照片、说说、评论和好友关系整理成一页可回看的记忆。你可以先设为仅自己可见，确认内容后再选择是否分享到 QQ 空间。`,
+    essay: `系统已经把「${cluster.title}」中的照片、说说、评论和好友关系整理成一页可回看的记忆。你可以先设为仅自己可见，确认内容后再选择是否分享到 QQ 空间。`,
     selectedPhotoIds: cluster.relatedPhotoIds,
     featuredPostId: cluster.relatedPostIds[0],
     featuredCommentIds: ['comment-001', 'comment-003', 'comment-004'],

@@ -73,7 +73,7 @@ export default function Analyzing({ importState, onComplete, onViewResult }) {
             ) : null}
             {isCustomColorPrompt ? (
               <p className="mt-2 rounded-2xl bg-sky-200/10 px-4 py-3 text-sm leading-6 text-sky-100">
-                正在模拟识别照片中的发色与人物特征……当前 Demo 使用 Mock 分类，未来可接入多模态视觉识别。
+                正在分析照片中的发色、人物特征与形象变化线索。
               </p>
             ) : null}
             <p className="mt-2 text-sm text-slate-400">
@@ -97,7 +97,7 @@ export default function Analyzing({ importState, onComplete, onViewResult }) {
               </Button>
             ) : (
               <p className="mt-9 text-sm text-slate-400">
-                正在用 Mock AI 服务模拟真实分类、图片识别、关系关联和回忆页生成流程。
+                正在分析照片内容、说说语义、评论情绪与互动关系。
               </p>
             )}
           </div>
