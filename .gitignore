@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.npm-cache/
+*.log
+vite-dev*.err.log
+vite-dev*.log

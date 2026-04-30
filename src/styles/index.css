@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #030915;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.hero-title,
+.hero-title span {
+  color: transparent;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.82) 0 0.52px, transparent 0.78px),
+    radial-gradient(circle, rgba(126, 203, 255, 0.38) 0 0.72px, transparent 1px),
+    linear-gradient(105deg, #ffffff 0%, #eef8ff 42%, #d9d4ff 76%, #ffffff 100%);
+  background-size:
+    5px 5px,
+    11px 11px,
+    100% 100%;
+  background-position:
+    0 0,
+    2px 3px,
+    0 0;
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-shadow:
+    0 0 18px rgba(111, 184, 255, 0.16),
+    0 0 36px rgba(150, 121, 255, 0.1);
+}
+
+.hero-title span {
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.8) 0 0.5px, transparent 0.76px),
+    radial-gradient(circle, rgba(164, 216, 255, 0.42) 0 0.72px, transparent 1px),
+    linear-gradient(100deg, #ffffff 0%, #e6f6ff 45%, #d4ccff 100%);
+}
+
+.memory-grid {
+  background-image:
+    linear-gradient(rgba(125, 190, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 190, 255, 0.07) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(circle at 50% 46%, black, transparent 72%);
+}
+
+.memory-noise {
+  background-image:
+    radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.8) 0 1px, transparent 1px),
+    radial-gradient(circle at 76% 28%, rgba(255, 255, 255, 0.55) 0 1px, transparent 1px),
+    radial-gradient(circle at 48% 16%, rgba(255, 255, 255, 0.45) 0 1px, transparent 1px),
+    radial-gradient(circle at 66% 72%, rgba(255, 255, 255, 0.35) 0 1px, transparent 1px);
+  background-size: 180px 180px, 220px 220px, 260px 260px, 300px 300px;
+}
+
+.time-dome {
+  box-shadow:
+    0 0 28px rgba(84, 181, 255, 0.28),
+    inset 0 0 48px rgba(84, 181, 255, 0.16);
+  mask-image: linear-gradient(to bottom, black 0%, black 54%, transparent 76%);
+}
+
+.time-dome-soft {
+  border: 1px solid rgba(146, 206, 255, 0.1);
+  box-shadow:
+    0 -18px 54px rgba(60, 150, 255, 0.22),
+    inset 0 28px 80px rgba(90, 164, 255, 0.14);
+  mask-image: linear-gradient(to bottom, black 0%, black 48%, transparent 72%);
+}
+
+.mountain-range {
+  clip-path: polygon(
+    0 100%,
+    0 64%,
+    8% 52%,
+    15% 62%,
+    25% 36%,
+    34% 58%,
+    42% 42%,
+    52% 66%,
+    64% 30%,
+    75% 56%,
+    84% 38%,
+    94% 60%,
+    100% 48%,
+    100% 100%
+  );
+}
+
+.mountain-back {
+  filter: blur(1px);
+  opacity: 0.78;
+}
+
+.mountain-front {
+  clip-path: polygon(
+    0 100%,
+    0 72%,
+    10% 52%,
+    18% 72%,
+    30% 42%,
+    41% 68%,
+    55% 46%,
+    67% 74%,
+    80% 40%,
+    90% 66%,
+    100% 50%,
+    100% 100%
+  );
+}
+
+.memory-figure::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(176, 215, 255, 0.8), rgba(55, 92, 130, 0.65));
+  box-shadow: 0 0 28px rgba(125, 190, 255, 0.42);
+}
+
+.memory-figure::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  width: 34px;
+  height: 92px;
+  transform: translateX(-50%);
+  border-radius: 999px 999px 10px 10px;
+  background: linear-gradient(180deg, rgba(98, 151, 205, 0.72), rgba(16, 31, 52, 0.92));
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
