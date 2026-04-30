@@ -13,11 +13,21 @@ body {
   margin: 0;
   min-width: 320px;
   background: #030915;
+  color: #fff;
 }
 
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+  background: #030915;
 }
 
 html {
@@ -46,6 +56,70 @@ html {
     0 0 36px rgba(150, 121, 255, 0.1);
 }
 
+.matrix-title {
+  color: #edf8ff;
+  letter-spacing: 0;
+  text-wrap: balance;
+  font-weight: 520;
+  background-image:
+    radial-gradient(circle, rgba(248, 253, 255, 0.96) 0 0.42px, transparent 0.68px),
+    radial-gradient(circle, rgba(160, 220, 255, 0.64) 0 0.46px, transparent 0.72px),
+    radial-gradient(circle, rgba(205, 196, 255, 0.46) 0 0.38px, transparent 0.7px),
+    linear-gradient(105deg, rgba(246, 252, 255, 0.92) 0%, rgba(211, 239, 255, 0.78) 44%, rgba(206, 198, 255, 0.72) 100%);
+  background-size:
+    3.2px 3.2px,
+    6.4px 6.4px,
+    9.6px 9.6px,
+    100% 100%;
+  background-position:
+    0 0,
+    1.6px 1.6px,
+    3.2px 0,
+    0 0;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(124, 198, 255, 0.16));
+  text-shadow:
+    0 0 10px rgba(155, 213, 255, 0.12),
+    0 0 28px rgba(153, 126, 255, 0.1);
+}
+
+.matrix-title::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: -0.08em -0.04em;
+  background:
+    linear-gradient(90deg, transparent, rgba(188, 229, 255, 0.16), transparent),
+    radial-gradient(circle at 50% 55%, rgba(116, 195, 255, 0.16), transparent 64%);
+  mix-blend-mode: screen;
+  opacity: 0.36;
+  filter: blur(10px);
+}
+
+@supports not (-webkit-background-clip: text) {
+  .matrix-title {
+    color: #edf8ff;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+
+.photo-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.35rem;
+  background: linear-gradient(135deg, rgba(117, 194, 255, 0.42), rgba(134, 106, 255, 0.22), rgba(9, 18, 35, 0.92));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+}
+
+.photo-card-placeholder {
+  background-image:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.42), transparent 24%),
+    linear-gradient(135deg, rgba(117, 194, 255, 0.34), rgba(132, 97, 255, 0.26)),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 12px);
+}
+
 .hero-title span {
   background-image:
     radial-gradient(circle, rgba(255, 255, 255, 0.8) 0 0.5px, transparent 0.76px),
@@ -72,17 +146,62 @@ html {
 
 .time-dome {
   box-shadow:
-    0 0 28px rgba(84, 181, 255, 0.28),
-    inset 0 0 48px rgba(84, 181, 255, 0.16);
+    0 0 26px rgba(84, 181, 255, 0.22),
+    0 -8px 70px rgba(98, 179, 255, 0.2),
+    inset 0 0 58px rgba(84, 181, 255, 0.13);
   mask-image: linear-gradient(to bottom, black 0%, black 54%, transparent 76%);
 }
 
 .time-dome-soft {
   border: 1px solid rgba(146, 206, 255, 0.1);
   box-shadow:
-    0 -18px 54px rgba(60, 150, 255, 0.22),
-    inset 0 28px 80px rgba(90, 164, 255, 0.14);
+    0 -18px 80px rgba(60, 150, 255, 0.2),
+    inset 0 28px 96px rgba(90, 164, 255, 0.11);
   mask-image: linear-gradient(to bottom, black 0%, black 48%, transparent 72%);
+}
+
+.experience-flow {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(86, 179, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 86% 70%, rgba(151, 118, 255, 0.13), transparent 36%),
+    linear-gradient(180deg, rgba(6, 17, 34, 0.96), rgba(4, 9, 20, 0.98));
+}
+
+.experience-flow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(139, 205, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 205, 255, 0.06) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(circle at 50% 42%, black, transparent 72%);
+}
+
+.flow-track {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(130, 205, 255, 0.18), rgba(189, 174, 255, 0.22), transparent);
+}
+
+.flow-track::after {
+  content: '';
+  position: absolute;
+  inset: -1px 0;
+  background: linear-gradient(90deg, transparent, rgba(210, 241, 255, 0.7), transparent);
+  width: 22%;
+  filter: blur(1px);
+  animation: flow-light 6s ease-in-out infinite;
+}
+
+@keyframes flow-light {
+  0% { transform: translateX(-30%); opacity: 0; }
+  18% { opacity: 0.8; }
+  82% { opacity: 0.8; }
+  100% { transform: translateX(420%); opacity: 0; }
 }
 
 .mountain-range {
