@@ -172,11 +172,10 @@ const photoAsset = (id, title, folder, file, description) => {
   }
   const theme = themeMap[folder] || folder
   const fallbackIndex = id.endsWith('-2') ? 1 : 0
+  const asset = getThemePhotoAssets(theme)[fallbackIndex]
   return {
-    ...getThemePhotoAssets(theme)[fallbackIndex],
+    ...asset,
     id,
-    title,
-    description,
   }
 }
 
@@ -197,8 +196,8 @@ const baseMemoryClusters = [
     aiConfidence: 92,
     dataSources: ['qq_album', 'qq_zone', 'friends', 'local_album'],
     photoAssets: [
-      photoAsset('asset-graduation-1', '毕业合影素材位', 'graduation', 'cover-01.jpg', '未来放置高中毕业季封面图'),
-      photoAsset('asset-graduation-2', '聚餐素材位', 'graduation', 'dinner-01.jpg', '未来放置毕业聚餐照片'),
+      photoAsset('asset-graduation-1', '毕业操场合影', 'graduation'),
+      photoAsset('asset-graduation-2', '最后一次班级聚餐', 'graduation'),
     ],
     relatedPhotoIds: ['photo-001', 'photo-002', 'photo-003'],
     relatedPostIds: ['post-001', 'post-002', 'post-003'],
@@ -219,7 +218,7 @@ const baseMemoryClusters = [
     classificationBasis: ['时间相近', '地点变化', '说说关键词匹配'],
     aiConfidence: 88,
     dataSources: ['qq_album', 'qq_zone', 'friends'],
-    photoAssets: [photoAsset('asset-campus-1', '大学校门素材位', 'campus', 'gate-01.jpg', '未来放置大学开学照片')],
+    photoAssets: [photoAsset('asset-campus-1', '开学报到', 'campus')],
     relatedPhotoIds: ['photo-004'],
     relatedPostIds: ['post-004'],
     relatedFriendIds: ['friend-004', 'friend-005'],
@@ -239,7 +238,7 @@ const baseMemoryClusters = [
     classificationBasis: ['场景主题一致', '共同人物重复出现', '时间相近'],
     aiConfidence: 86,
     dataSources: ['qq_album', 'qq_zone', 'friends'],
-    photoAssets: [photoAsset('asset-military-1', '军训素材位', 'military-training', 'group-01.jpg', '未来放置军训合影')],
+    photoAssets: [photoAsset('asset-military-1', '军训集体合影', 'military-training')],
     relatedPhotoIds: ['photo-005'],
     relatedPostIds: [],
     relatedFriendIds: ['friend-005'],
@@ -259,7 +258,7 @@ const baseMemoryClusters = [
     classificationBasis: ['场景主题一致', '说说关键词匹配', '共同人物重复出现'],
     aiConfidence: 84,
     dataSources: ['qq_album', 'qq_zone', 'friends'],
-    photoAssets: [photoAsset('asset-dinner-1', '班级聚餐素材位', 'qq-memory', 'class-dinner-01.jpg', '未来放置班级聚餐照片')],
+    photoAssets: [photoAsset('asset-dinner-1', '班级聚餐', 'qq-memory')],
     relatedPhotoIds: ['photo-006'],
     relatedPostIds: [],
     relatedFriendIds: ['friend-005'],
@@ -279,7 +278,7 @@ const baseMemoryClusters = [
     classificationBasis: ['人物关系匹配', '地点相近', '本地照片补全'],
     aiConfidence: 90,
     dataSources: ['local_album', 'qq_zone', 'friends'],
-    photoAssets: [photoAsset('asset-family-1', '家庭旅行素材位', 'family-travel', 'lake-01.jpg', '未来放置家人旅行照片')],
+    photoAssets: [photoAsset('asset-family-1', '家庭出游', 'family-travel')],
     relatedPhotoIds: ['photo-007'],
     relatedPostIds: [],
     relatedFriendIds: ['friend-004'],
@@ -299,7 +298,7 @@ const baseMemoryClusters = [
     classificationBasis: ['好友互动频率', '共同人物重复出现', '评论关系匹配'],
     aiConfidence: 94,
     dataSources: ['qq_zone', 'friends', 'qq_album'],
-    photoAssets: [photoAsset('asset-friends-1', '好友关系素材位', 'friends', 'messages-01.jpg', '未来放置好友互动相关图片')],
+    photoAssets: [photoAsset('asset-friends-1', '朋友合影', 'friends')],
     relatedPhotoIds: ['photo-008'],
     relatedPostIds: ['post-001', 'post-002'],
     relatedFriendIds: ['friend-001', 'friend-002', 'friend-003', 'friend-005'],

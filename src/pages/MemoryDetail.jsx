@@ -5,6 +5,7 @@ import GlassCard from '../components/GlassCard.jsx'
 import PageShell from '../components/PageShell.jsx'
 import PhotoCard from '../components/PhotoCard.jsx'
 import PhotoGrid from '../components/PhotoGrid.jsx'
+import PhotoLightbox from '../components/PhotoLightbox.jsx'
 import PrivacyNotice from '../components/PrivacyNotice.jsx'
 import Tag from '../components/Tag.jsx'
 import Timeline from '../components/Timeline.jsx'
@@ -15,6 +16,7 @@ import { generateMemoryPage, repairMissingMemories } from '../services/aiMemoryS
 export default function MemoryDetail({ cluster, analysisResult, onBack, onGenerated }) {
   const [generating, setGenerating] = useState(false)
   const [repairState, setRepairState] = useState(null)
+  const [lightboxIndex, setLightboxIndex] = useState(null)
   const currentCluster =
     analysisResult.memoryClusters.find((item) => item.id === cluster.id) || cluster
   const clusterPhotos = photos.filter((photo) => currentCluster.relatedPhotoIds.includes(photo.id))
@@ -72,12 +74,14 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
               <PhotoCard
                 title={currentCluster.title}
                 src={displayPhotos[0]?.src}
+                fallbackSrc={displayPhotos[0]?.fallbackSrc}
                 description={displayPhotos[0]?.description}
                 source={displayPhotos[0]?.source}
                 isPlaceholder={displayPhotos[0]?.isPlaceholder}
                 badge={currentCluster.highlight}
                 className="h-full rounded-[1.35rem] shadow-none"
                 aspect=""
+                onPreview={() => setLightboxIndex(0)}
               />
             </div>
             <div className="mb-4 flex flex-wrap gap-2">
@@ -134,7 +138,7 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
               照片墙
             </h2>
             <p className="mb-4 text-sm text-slate-400">{photoMeta.countLabel}</p>
-            <PhotoGrid photos={displayPhotos} />
+            <PhotoGrid photos={displayPhotos} onPhotoPreview={setLightboxIndex} />
           </GlassCard>
 
           <div className="grid gap-5 md:grid-cols-2">
@@ -189,6 +193,14 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
           </GlassCard>
         </div>
       </div>
+      {lightboxIndex !== null ? (
+        <PhotoLightbox
+          photos={displayPhotos}
+          initialIndex={lightboxIndex}
+          contextTitle={currentCluster.title}
+          onClose={() => setLightboxIndex(null)}
+        />
+      ) : null}
     </PageShell>
   )
 }

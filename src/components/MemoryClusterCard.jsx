@@ -14,6 +14,7 @@ import { sourceLabels } from '../data/mockData.js'
 import { resolveClusterPhotoMeta } from '../data/photoAssets.js'
 import GlassCard from './GlassCard.jsx'
 import PhotoCard from './PhotoCard.jsx'
+import PhotoLightbox from './PhotoLightbox.jsx'
 import Tag from './Tag.jsx'
 
 export default function MemoryClusterCard({
@@ -26,9 +27,11 @@ export default function MemoryClusterCard({
 }) {
   const [editing, setEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState(cluster.title)
+  const [lightboxIndex, setLightboxIndex] = useState(null)
   const canManage = cluster.isUserArchive && onRename && onDelete
   const photoMeta = resolveClusterPhotoMeta({ cluster, uploadedPhotos, minCount: 3, maxCount: 4 })
   const previews = photoMeta.photos
+  const localUploadLabel = cluster.localUploadCount ? `本地 ${cluster.localUploadCount}` : null
 
   const handleRename = () => {
     const nextTitle = draftTitle.trim()
@@ -46,15 +49,25 @@ export default function MemoryClusterCard({
   return (
     <GlassCard className={`group rounded-[1.6rem] p-5 transition hover:-translate-y-1 hover:border-sky-200/25 hover:bg-white/[0.068] ${featured ? 'md:col-span-2' : ''}`} as="article">
       <div className="relative mb-4 h-48 overflow-hidden rounded-[1.35rem] shadow-2xl shadow-sky-950/24">
-        <CoverTile item={previews[0]} title={cluster.title} large />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/74 via-black/12 to-white/5" />
+        <CoverTile item={previews[0]} title={cluster.title} large onPreview={() => setLightboxIndex(0)} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/64 via-black/10 to-transparent" />
+        <div className="absolute left-3 top-3 flex max-w-[70%] flex-wrap gap-2">
+          <span className="max-w-full truncate rounded-full border border-white/12 bg-black/20 px-3 py-1 text-[11px] font-medium text-sky-50 backdrop-blur-md">
+            {previews[0]?.isUploaded ? '本地上传' : cluster.highlight || '记忆相册'}
+          </span>
+          {localUploadLabel ? (
+            <span className="rounded-full border border-sky-100/15 bg-sky-200/12 px-3 py-1 text-[11px] font-medium text-sky-50 backdrop-blur-md">
+              {localUploadLabel}
+            </span>
+          ) : null}
+        </div>
         <div className="absolute inset-x-3 bottom-3 grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="min-w-0 rounded-2xl bg-black/24 px-3 py-2 backdrop-blur-xl">
-            <div className="truncate text-[11px] font-medium text-sky-50/85">
-              {previews[0]?.isUploaded ? '本地上传' : cluster.highlight || '记忆相册'}
+          <div className="min-w-0 rounded-2xl border border-white/10 bg-black/16 px-3 py-2 backdrop-blur-md">
+            <div className="truncate text-sm font-semibold text-white">
+              {shortPhotoTitle(previews[0], cluster.title)}
             </div>
-            <div className="mt-1 truncate text-sm font-semibold text-white">
-              {previews[0]?.title || cluster.title}
+            <div className="mt-1 truncate text-[11px] text-white/66">
+              {photoMeta.countLabel}
             </div>
           </div>
           {previews.length > 1 ? (
@@ -64,6 +77,7 @@ export default function MemoryClusterCard({
                   key={item.id || `${cluster.id}-cover-${index}`}
                   item={item}
                   title={cluster.tags?.[index] || cluster.title}
+                  onPreview={() => setLightboxIndex(index + 1)}
                 />
               ))}
             </div>
@@ -72,7 +86,7 @@ export default function MemoryClusterCard({
       </div>
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-        <span className="max-w-full truncate rounded-full border border-white/12 bg-white/[0.055] px-3 py-1 text-xs text-slate-200">
+        <span className="max-w-full rounded-full border border-white/12 bg-white/[0.055] px-3 py-1 text-xs leading-5 text-slate-200">
           {featured ? '重点记忆包' : cluster.highlight}
         </span>
         <span className="shrink-0 rounded-full bg-white/[0.045] px-3 py-1 text-xs text-slate-300">
@@ -129,7 +143,7 @@ export default function MemoryClusterCard({
           </span>
           {cluster.localUploadCount ? (
             <span className="rounded-full bg-sky-200/10 px-3 py-1 text-xs text-sky-100">
-              含 {cluster.localUploadCount} 张本地补全照片
+              含本地补全
             </span>
           ) : null}
         </div>
@@ -163,24 +177,36 @@ export default function MemoryClusterCard({
         进入详情
         <ArrowRight size={16} className="transition group-hover:translate-x-1" />
       </button>
+      {lightboxIndex !== null ? (
+        <PhotoLightbox
+          photos={previews}
+          initialIndex={lightboxIndex}
+          contextTitle={cluster.title}
+          onClose={() => setLightboxIndex(null)}
+        />
+      ) : null}
     </GlassCard>
   )
 }
 
-function CoverTile({ item, title, large = false }) {
-  const label = item?.title || title
+function CoverTile({ item, title, large = false, onPreview }) {
+  const label = shortPhotoTitle(item, title)
   const src = item?.src || item?.previewUrl || item?.dataUrl || item?.objectUrl
 
   if (large) {
     if (item?.isUploaded && src) {
       return (
-        <img
+        <PhotoCard
+          title={label}
           src={src}
-          alt={label}
-          className="absolute inset-0 h-full w-full rounded-[1.35rem] object-cover"
-          onError={(event) => {
-            event.currentTarget.style.display = 'none'
-          }}
+          fallbackSrc={item?.fallbackSrc}
+          source={item?.source}
+          isPlaceholder={item?.isPlaceholder}
+          showMeta={false}
+          showDescription={false}
+          className="absolute inset-0 rounded-[1.35rem] shadow-none"
+          aspect=""
+          onPreview={onPreview}
         />
       )
     }
@@ -189,12 +215,14 @@ function CoverTile({ item, title, large = false }) {
       <PhotoCard
         title={label}
         src={src}
+        fallbackSrc={item?.fallbackSrc}
         source={item?.source}
         isPlaceholder={item?.isPlaceholder}
         showMeta={false}
         showDescription={false}
         className="absolute inset-0 rounded-[1.35rem] shadow-none"
         aspect=""
+        onPreview={onPreview}
       />
     )
   }
@@ -203,6 +231,7 @@ function CoverTile({ item, title, large = false }) {
     <PhotoCard
       title={label}
       src={src}
+      fallbackSrc={item?.fallbackSrc}
       source={item?.source}
       isPlaceholder={item?.isPlaceholder}
       compact
@@ -210,6 +239,7 @@ function CoverTile({ item, title, large = false }) {
       showDescription={false}
       className="h-16 w-20 rounded-2xl shadow-lg shadow-black/24"
       aspect=""
+      onPreview={onPreview}
     />
   )
 }
@@ -218,7 +248,15 @@ function Metric({ icon: Icon, label }) {
   return (
     <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.045] px-3 py-2">
       <Icon size={15} className="shrink-0 text-sky-200" />
-      <span className="truncate">{label}</span>
+      <span className="min-w-0 truncate">{label}</span>
     </div>
   )
+}
+
+function shortPhotoTitle(item, fallback = '记忆相册') {
+  const title = item?.isUploaded
+    ? item.fileName || item.title || fallback
+    : item?.title || fallback
+  if (!title) return fallback
+  return title.length > 18 ? `${title.slice(0, 16)}...` : title
 }

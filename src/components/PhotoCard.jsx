@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ZoomIn } from 'lucide-react'
 
 export default function PhotoCard({
   title,
@@ -7,57 +8,91 @@ export default function PhotoCard({
   description,
   source,
   isPlaceholder = false,
+  fallbackSrc,
   compact = false,
   showMeta = true,
   showDescription = true,
   className = '',
   imageClassName = '',
   aspect = 'aspect-[4/3]',
+  onPreview,
 }) {
   const [failed, setFailed] = useState(false)
+  const [usingFallback, setUsingFallback] = useState(false)
   const imageSrc = typeof src === 'string' ? src.trim() : src
+  const fallbackImageSrc = typeof fallbackSrc === 'string' ? fallbackSrc.trim() : fallbackSrc
+  const activeImageSrc = usingFallback ? fallbackImageSrc : imageSrc
   useEffect(() => {
     setFailed(false)
-  }, [imageSrc])
+    setUsingFallback(false)
+  }, [imageSrc, fallbackImageSrc])
 
-  const showImage = imageSrc && !failed
+  const showImage = activeImageSrc && !failed
+  const interactive = Boolean(onPreview)
   const sourceLabel =
     badge ||
     (source === 'uploaded'
       ? '本地照片'
       : source === 'demo'
-        ? '记忆素材'
+        ? '相册片段'
         : isPlaceholder
           ? '相册片段'
           : '')
 
-  const captionPadding = compact ? 'p-2' : 'p-3'
+  const captionPadding = compact ? 'p-2' : 'p-3.5'
   const titleClass = compact
     ? 'truncate text-[11px] font-medium leading-4 text-white/90'
-    : 'line-clamp-2 text-xs font-medium leading-5 text-white/90'
+    : 'line-clamp-2 text-sm font-semibold leading-5 text-white/92'
   const descriptionClass = compact
     ? 'hidden'
     : 'mt-1 line-clamp-1 text-[11px] leading-4 text-white/58'
 
   return (
-    <figure className={`photo-card ${aspect} ${className}`}>
+    <figure
+      className={`photo-card group/photo ${aspect} ${interactive ? 'cursor-zoom-in' : ''} ${className}`}
+      role={interactive ? 'button' : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      aria-label={interactive ? `查看大图：${title}` : undefined}
+      onClick={onPreview}
+      onKeyDown={(event) => {
+        if (!interactive) return
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onPreview?.()
+        }
+      }}
+    >
       {showImage ? (
         <img
-          key={imageSrc}
-          src={imageSrc}
+          key={activeImageSrc}
+          src={activeImageSrc}
           alt={title}
-          className={`absolute inset-0 h-full w-full object-cover ${imageClassName}`}
+          className={`absolute inset-0 h-full w-full object-cover transition duration-500 ${interactive ? 'group-hover/photo:scale-[1.035]' : ''} ${imageClassName}`}
           onLoad={() => setFailed(false)}
-          onError={() => setFailed(true)}
+          onError={() => {
+            if (!usingFallback && fallbackImageSrc) {
+              setUsingFallback(true)
+              return
+            }
+            setFailed(true)
+          }}
         />
       ) : (
         <div className="photo-card-placeholder absolute inset-0" />
       )}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,transparent_34%,rgba(0,0,0,0.28)_100%)]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/16 to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,transparent_40%,rgba(0,0,0,0.2)_100%)]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/62 via-black/10 to-transparent" />
+      {interactive ? (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition duration-300 group-hover/photo:bg-black/14 group-hover/photo:opacity-100 group-focus-visible/photo:bg-black/14 group-focus-visible/photo:opacity-100">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/28 px-3 py-1.5 text-xs font-medium text-white shadow-lg shadow-black/20 backdrop-blur-md">
+            <ZoomIn size={14} />
+            查看大图
+          </span>
+        </div>
+      ) : null}
       <figcaption className={`absolute inset-x-0 bottom-0 min-w-0 ${captionPadding}`}>
         {showMeta && sourceLabel ? (
-          <span className="mb-2 inline-flex max-w-full rounded-full bg-black/28 px-2.5 py-1 text-[11px] font-medium text-sky-50 backdrop-blur-md">
+          <span className="mb-2 inline-flex max-w-full rounded-full border border-white/10 bg-black/22 px-2.5 py-1 text-[11px] font-medium text-sky-50 backdrop-blur-md">
             <span className="min-w-0 truncate">{sourceLabel}</span>
           </span>
         ) : null}

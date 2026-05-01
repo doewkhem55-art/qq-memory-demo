@@ -1,63 +1,74 @@
-const photo = (folder, index, title, description) => ({
-  id: `${folder}-${index}`,
+const photo = (folder, slug, title, description, fallbackSlug = slug) => ({
+  id: `${folder}-${slug}`,
   title,
-  src: `/demo-photos/${folder}/${String(index).padStart(2, '0')}.svg`,
+  src: `/demo-photos/${folder}/${slug}.jpg`,
+  fallbackSrc: `/demo-photos/${folder}/${fallbackSlug}.svg`,
   type: 'image',
   source: 'demo',
   description,
-  isPlaceholder: true,
+  isPlaceholder: false,
+  isDemoPhoto: true,
 })
 
 export const demoPhotoAssets = {
   graduation: [
-    photo('graduation', 1, '毕业合影', '高中毕业季的合影素材位'),
-    photo('graduation', 2, '操场告别', '夏天操场与毕业告别的素材位'),
-    photo('graduation', 3, '最后一次聚餐', '毕业聚餐与同学告别的素材位'),
+    photo('graduation', 'graduation-01', '毕业操场合影', '操场边的毕业合影，保留夏天和同学告别的氛围', 'class-photo'),
+    photo('graduation', 'graduation-02', '毕业前最后一次班会', '教室灯光下的毕业告别场景', 'classroom-last-day'),
+    photo('graduation', 'graduation-03', '最后一次班级聚餐', '餐桌旁的告别和约定', 'playground-group'),
+    photo('graduation', 'graduation-04', '毕业旅行路上', '海边与车站之间的毕业旅行片段', 'summer-trip'),
   ],
   campus: [
-    photo('campus', 1, '大学校门', '大学开学报到的校园素材位'),
-    photo('campus', 2, '宿舍走廊', '校园日常与新生活开始的素材位'),
-    photo('campus', 3, '夜色操场', '大学校园晚间记忆的素材位'),
+    photo('campus', 'campus-01', '校园日常', '林荫路、教学楼与傍晚操场', 'daily-walk'),
+    photo('campus', 'campus-02', '宿舍夜聊', '宿舍灯串下的夜聊与零食桌', 'dorm-night-talk'),
+    photo('campus', 'campus-03', '图书馆微光', '图书馆窗边的书本和台灯', 'library-light'),
+    photo('campus', 'campus-04', '开学报到', '行李箱、报到牌与新的校园入口', 'first-day'),
   ],
   'military-training': [
-    photo('military-training', 1, '军训队列', '军训合影与训练场景素材位'),
-    photo('military-training', 2, '训练场黄昏', '军训黄昏与集体记忆素材位'),
-    photo('military-training', 3, '迷彩合影', '军训结束合影素材位'),
+    photo('military-training', 'military-01', '操场训练', '训练场上的队列与口令', 'field-training'),
+    photo('military-training', 'military-02', '军训集体合影', '军训结束时的集体记忆', 'group-silhouette'),
+    photo('military-training', 'military-03', '迷彩色记忆', '迷彩帽、训练场和水壶组成的片段', 'camouflage-memory'),
   ],
   'family-travel': [
-    photo('family-travel', 1, '湖边旅行', '家人旅行与节假日素材位'),
-    photo('family-travel', 2, '车窗风景', '家庭出行途中的素材位'),
-    photo('family-travel', 3, '晚餐留影', '家人旅行晚餐记忆素材位'),
+    photo('family-travel', 'family-01', '家庭出游', '节假日一起出门的温暖片段', 'holiday-trip'),
+    photo('family-travel', 'family-02', '海边和山间', '海风、山影与家人的旅行路上', 'seaside-mountain'),
+    photo('family-travel', 'family-03', '车窗旅途', '车窗外掠过的城市灯光', 'train-window'),
+    photo('family-travel', 'family-04', '节假日晚餐', '节日暖光里的家庭晚餐记忆', 'festival-photo'),
   ],
   friends: [
-    photo('friends', 1, '好友留言', '好友互动与常联系的人素材位'),
-    photo('friends', 2, '一起出发', '朋友出行与合影素材位'),
-    photo('friends', 3, '聊天截图感', 'QQ 空间互动记忆素材位'),
+    photo('friends', 'friends-01', '班级聚餐', '餐桌、饮料和举杯的朋友剪影', 'class-dinner'),
+    photo('friends', 'friends-02', '生日聚会', '蛋糕烛光和祝福卡片', 'birthday-party'),
+    photo('friends', 'friends-03', 'KTV 夜景', '霓虹灯下的聚会和麦克风剪影', 'ktv-night'),
+    photo('friends', 'friends-04', '朋友合影', '夜色街口的朋友合影片段', 'friends-photo'),
   ],
   self: [
-    photo('self', 1, '一个人的窗边', '关于我自己的成长片段素材位'),
-    photo('self', 2, '书桌微光', '个人日常与独处记忆素材位'),
-    photo('self', 3, '路灯下的影子', '自我变化与阶段感素材位'),
+    photo('self', 'self-01', '镜前自拍', '镜面、手机和柔和轮廓', 'mirror-selfie'),
+    photo('self', 'self-02', '形象变化', '衣架、照片墙和阶段变化', 'style-change'),
+    photo('self', 'self-03', '独处日常', '书桌台灯和一个人的晚间日常', 'quiet-desk'),
+    photo('self', 'self-04', '成长记录', '相册页、便签和时间刻度', 'growth-notes'),
   ],
   recent: [
-    photo('recent', 1, '近期日常', '持续归档新照片素材位'),
-    photo('recent', 2, '周末片段', '近期生活整理素材位'),
-    photo('recent', 3, '新的相册', '新归档相册素材位'),
+    photo('recent', 'recent-01', '近期日常', '最近上传的日常片段', 'recent-daily'),
+    photo('recent', 'recent-02', '周末片段', '周末街灯和朋友出门', 'weekend-moment'),
+    photo('recent', 'recent-03', '新的相册', '新归档相册的胶片封面', 'new-album'),
   ],
   emotion: [
-    photo('emotion', 1, '开心时刻', '轻松快乐情绪记忆素材位'),
-    photo('emotion', 2, '告别黄昏', '告别与不舍情绪素材位'),
-    photo('emotion', 3, '成长光影', '成长变化与情绪转折素材位'),
+    photo('emotion', 'emotion-01', '开心时刻', '彩带、笑声和暖色灯光', 'happy-moment'),
+    photo('emotion', 'emotion-02', '告别与不舍', '黄昏站台和挥手剪影', 'farewell-sunset'),
+    photo('emotion', 'emotion-03', '热闹聚会', '餐桌与霓虹里的热闹瞬间', 'lively-party'),
+    photo('emotion', 'emotion-04', '安静独处', '窗边月光和一个人的影子', 'quiet-alone'),
+    photo('emotion', 'emotion-05', '成长变化', '时间胶片和逐渐亮起的光', 'growth-light'),
   ],
   appearance: [
-    photo('appearance', 1, '黑发时期', '发色与形象变化素材位'),
-    photo('appearance', 2, '浅色光线', '浅色发色与强光变化素材位'),
-    photo('appearance', 3, '帽檐遮挡', '戴帽子或难以识别发色素材位'),
+    photo('appearance', 'appearance-01', '黑发时期', '黑发轮廓与校园外套', 'black-hair'),
+    photo('appearance', 'appearance-02', '浅色发色', '浅色发梢与窗边强光', 'light-hair'),
+    photo('appearance', 'appearance-03', '戴帽子', '帽檐下的侧影和街灯', 'cap-shadow'),
+    photo('appearance', 'appearance-04', '合影中的变化', '照片墙中不同阶段的穿搭剪影', 'group-style'),
   ],
   relationship: [
-    photo('relationship', 1, '家人相关回忆', '家人关系分类素材位'),
-    photo('relationship', 2, '和朋友的回忆', '朋友关系分类素材位'),
-    photo('relationship', 3, '和同学的回忆', '同学关系分类素材位'),
+    photo('relationship', 'relationship-01', '家人', '温暖餐桌旁的家人剪影', 'family'),
+    photo('relationship', 'relationship-02', '同学', '课桌与合照中的同学关系', 'classmates'),
+    photo('relationship', 'relationship-03', '朋友', '常一起出现的朋友合影', 'friends'),
+    photo('relationship', 'relationship-04', '常联系的人', '留言气泡和相册片段', 'frequent-contacts'),
   ],
 }
 
@@ -150,6 +161,7 @@ export function normalizeUploadedPhotos(uploadedPhotos = []) {
       previewUrl: photo.previewUrl || src,
       dataUrl: photo.dataUrl,
       objectUrl: photo.objectUrl,
+      fallbackSrc: photo.fallbackSrc,
       type: 'image',
       source: 'uploaded',
       description:
@@ -200,6 +212,7 @@ export function mergeUploadedPhotoPreviews(uploadResults = [], uploadedPreviews 
       previewUrl: item.previewUrl || item.src || item.dataUrl || preview.previewUrl || preview.src || preview.dataUrl || src,
       dataUrl: item.dataUrl || preview.dataUrl,
       objectUrl: item.objectUrl || preview.objectUrl,
+      fallbackSrc: item.fallbackSrc || preview.fallbackSrc,
       source: 'uploaded',
       isUploaded: true,
       isPlaceholder: false,
@@ -245,7 +258,7 @@ export function resolveClusterPhotoMeta({
 
   while (unique.length < minCount) {
     const fallback = getThemePhotoAssets(inferTheme(cluster))[unique.length % 3]
-    unique.push({ ...fallback, id: `${cluster.id || 'cluster'}-fallback-${unique.length}` })
+      unique.push({ ...fallback, id: `${cluster.id || 'cluster'}-fallback-${unique.length}` })
   }
 
   const photos = unique.slice(0, maxCount)
@@ -253,9 +266,9 @@ export function resolveClusterPhotoMeta({
   const sourcePhotoCount = cluster.sourcePhotoCount || cluster.rawPhotoCount || cluster.photoCount || 0
   const countLabel =
     displayedPhotoCount > 0 && sourcePhotoCount > displayedPhotoCount
-      ? `已检索 ${sourcePhotoCount} 张，预览 ${displayedPhotoCount} 张`
+      ? `检索 ${sourcePhotoCount} / ${displayedPhotoCount} 预览`
       : displayedPhotoCount > 0
-        ? `${displayedPhotoCount} 张照片`
+        ? `预览 ${displayedPhotoCount}`
         : '暂无可预览照片'
 
   return {

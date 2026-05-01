@@ -6,6 +6,7 @@ import GlassCard from '../components/GlassCard.jsx'
 import PageShell from '../components/PageShell.jsx'
 import PhotoCard from '../components/PhotoCard.jsx'
 import PhotoGrid from '../components/PhotoGrid.jsx'
+import PhotoLightbox from '../components/PhotoLightbox.jsx'
 import PrivacyNotice from '../components/PrivacyNotice.jsx'
 import { classificationModeLabels, comments, photos, posts } from '../data/mockData.js'
 import { resolveClusterPhotoMeta } from '../data/photoAssets.js'
@@ -37,6 +38,7 @@ export default function MemoryPage({
   const [archiveAlbumName, setArchiveAlbumName] = useState('')
   const [archiveResult, setArchiveResult] = useState(null)
   const [archiveRenameDraft, setArchiveRenameDraft] = useState('')
+  const [lightboxIndex, setLightboxIndex] = useState(null)
   const currentCluster =
     analysisResult.memoryClusters.find((item) => item.id === cluster.id) || cluster
   const page =
@@ -90,6 +92,7 @@ export default function MemoryPage({
             <PhotoCard
               title={currentCluster.title}
               src={displayPhotos[0]?.src}
+              fallbackSrc={displayPhotos[0]?.fallbackSrc}
               description={displayPhotos[0]?.description}
               source={displayPhotos[0]?.source}
               isPlaceholder={displayPhotos[0]?.isPlaceholder}
@@ -121,7 +124,7 @@ export default function MemoryPage({
                 精选照片
               </h3>
               <p className="mb-4 text-sm text-slate-400">{photoMeta.countLabel}</p>
-              <PhotoGrid photos={displayPhotos} />
+              <PhotoGrid photos={displayPhotos} onPhotoPreview={setLightboxIndex} />
             </section>
 
             <div className="grid gap-5 md:grid-cols-2">
@@ -245,6 +248,14 @@ export default function MemoryPage({
             onViewClusters()
           }}
           onClose={() => setArchivePanelOpen(false)}
+        />
+      ) : null}
+      {lightboxIndex !== null ? (
+        <PhotoLightbox
+          photos={displayPhotos}
+          initialIndex={lightboxIndex}
+          contextTitle={currentCluster.title}
+          onClose={() => setLightboxIndex(null)}
         />
       ) : null}
     </PageShell>
