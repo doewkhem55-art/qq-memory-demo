@@ -49,6 +49,10 @@ export default function MemoryPage({
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [essayEditing, setEssayEditing] = useState(false)
   const [essayDraft, setEssayDraft] = useState('')
+  const [completionFeedback, setCompletionFeedback] = useState({
+    type: 'private',
+    message: '当前仅自己可见，可随时返回编辑。',
+  })
   const currentCluster =
     analysisResult.memoryClusters.find((item) => item.id === cluster.id) || cluster
   const defaultEssay = generateMemoryEssay(currentCluster)
@@ -84,6 +88,30 @@ export default function MemoryPage({
       memoryPageText: trimmedEssay || undefined,
     })
     setEssayEditing(false)
+  }
+
+  const handleSaveToCorridor = () => {
+    onUpdateVisibility?.(currentCluster.id, 'private')
+    setCompletionFeedback({
+      type: 'saved',
+      message: '已保存到我的时光回廊，当前仅自己可见。',
+    })
+  }
+
+  const handleShareDraft = () => {
+    onUpdateVisibility?.(currentCluster.id, 'qzone')
+    setCompletionFeedback({
+      type: 'shared',
+      message: '已生成 QQ 空间分享草稿，发布前你仍可继续编辑。',
+    })
+  }
+
+  const handleContinueArchive = () => {
+    setCompletionFeedback({
+      type: 'archive',
+      message: '继续把近期照片放进时光回廊，让今天成为未来可回看的记忆。',
+    })
+    setArchivePanelOpen(true)
   }
 
   const selectedPhotos = photos.filter((photo) => page.selectedPhotoIds.includes(photo.id))
@@ -256,47 +284,67 @@ export default function MemoryPage({
           </div>
         </GlassCard>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Button>
-            <Sparkles size={17} />
-            保存到我的时光回廊
-          </Button>
-          <Button variant="secondary" onClick={() => onUpdateVisibility?.(currentCluster.id, 'private')}>
-            <Eye size={17} />
-            仅自己可见
-          </Button>
-          <Button variant="secondary" onClick={() => onUpdateVisibility?.(currentCluster.id, 'qzone')}>
-            <Send size={17} />
-            分享到 QQ 空间
-          </Button>
-        </div>
+        <GlassCard className="mt-8 overflow-hidden rounded-[2rem] p-6 sm:p-7">
+          <div className="pointer-events-none absolute inset-x-8 top-0 h-32 bg-sky-300/10 blur-3xl" />
+          <div className="grid gap-7 lg:grid-cols-[1fr_0.95fr] lg:items-center">
+            <div>
+              <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-sky-100/15 bg-sky-200/10 px-3 py-1 text-xs font-semibold text-sky-100">
+                <Check size={14} />
+                回忆页已生成
+              </p>
+              <DisplayTitle as="h3" className="text-3xl font-semibold leading-tight">
+                这段记忆已整理完成
+              </DisplayTitle>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
+                你可以先保存为仅自己可见，确认内容后再选择分享到 QQ 空间；也可以继续把最近的照片放进时光回廊，让今天成为未来可回看的记忆。
+              </p>
+              <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                <CompletionStatus icon={Eye} text={getVisibilityCopy(currentCluster.visibility).label} active={completionFeedback.type === 'private'} />
+                <CompletionStatus icon={Check} text={completionFeedback.type === 'saved' ? '已保存到我的时光回廊' : '可随时返回编辑'} active={completionFeedback.type === 'saved'} />
+                <CompletionStatus icon={Send} text={completionFeedback.type === 'shared' ? '已同步到 QQ 空间草稿' : '发布前仍可修改'} active={completionFeedback.type === 'shared'} />
+                <CompletionStatus icon={ImagePlus} text="旧回忆已整理，新生活也可以继续归档" active={completionFeedback.type === 'archive'} />
+              </div>
+            </div>
+
+            <div className="memory-panel rounded-[1.65rem] p-4 sm:p-5">
+              <div className="rounded-[1.35rem] border border-sky-100/14 bg-sky-200/[0.075] px-4 py-3 text-sm leading-6 text-sky-50 shadow-[0_0_32px_rgba(125,211,252,0.08)] transition">
+                {completionFeedback.message}
+                {currentCluster.memoryPageText ? (
+                  <span className="mt-1 block text-xs text-sky-100/80">
+                    修改已同步，保存后将使用当前版本。
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="mt-5 grid gap-3">
+                <Button onClick={handleSaveToCorridor} className="w-full justify-center">
+                  <Sparkles size={17} />
+                  保存到我的时光回廊
+                </Button>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Button variant="secondary" onClick={handleShareDraft} className="w-full px-4">
+                    <Send size={17} />
+                    分享到 QQ 空间
+                  </Button>
+                  <Button variant="secondary" onClick={handleContinueArchive} className="w-full px-4 ring-1 ring-sky-200/10">
+                    <ImagePlus size={17} />
+                    继续归档近期照片
+                  </Button>
+                </div>
+              </div>
+
+              <p className="mt-4 text-xs leading-5 text-slate-400">
+                QQ 空间可以重新成为你的生活记录器：找回过去，也把新的日常保存到未来。
+              </p>
+            </div>
+          </div>
+        </GlassCard>
 
         <div className="mt-6">
           <PrivacyNotice>
             所有回忆内容仅在用户授权范围内生成，用户可随时删除、隐藏或取消关联。
           </PrivacyNotice>
         </div>
-
-        <GlassCard className="mt-8 rounded-[2rem] p-6 sm:p-7">
-          <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
-            <div>
-              <h3 className="text-2xl font-semibold text-white">从今天开始，继续整理新的记忆</h3>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
-                这次你找回了过去的回忆。以后也可以把近期照片交给 QQ 时光回廊，AI 会沿用你的整理偏好，把新照片自动归档进个人时光档案。
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button onClick={() => setArchivePanelOpen(true)}>
-                <ImagePlus size={17} />
-                归档最近照片
-              </Button>
-              <Button variant="secondary" onClick={() => setArchivePanelOpen(true)}>
-                <Settings2 size={17} />
-                设置自动归档规则
-              </Button>
-            </div>
-          </div>
-        </GlassCard>
       </div>
       {archivePanelOpen ? (
         <NewArchivePanel
@@ -535,6 +583,15 @@ function NewArchivePanel({
           </div>
         ) : null}
       </div>
+    </div>
+  )
+}
+
+function CompletionStatus({ icon: Icon, text, active = false }) {
+  return (
+    <div className={`memory-chip rounded-2xl px-3 py-2 text-xs leading-5 transition ${active ? 'border-sky-100/32 bg-sky-200/15 text-sky-50' : 'text-slate-300'}`}>
+      <Icon size={14} className="mr-2 shrink-0 text-sky-100" />
+      <span>{text}</span>
     </div>
   )
 }
