@@ -22,7 +22,7 @@ const anchors = [
   { icon: Camera, label: 'QQ 空间旧相册' },
   { icon: MessageCircle, label: '说说评论关联' },
   { icon: UsersRound, label: '好友关系链联想' },
-  { icon: ImagePlus, label: '本地相册补全' },
+  { icon: ImagePlus, label: '从今天继续记录' },
 ]
 
 const insightLayers = [
@@ -65,6 +65,14 @@ const featureCards = [
     output: '检测到 8 张照片可能属于“高中毕业季”。',
     future: '图片时间地点识别、人物匹配、相似场景检索。',
   },
+  {
+    icon: ImagePlus,
+    title: '从今天开始记录',
+    desc: '当旧回忆被整理完成后，你可以继续把近期照片放进时光回廊，让 QQ 空间成为属于自己的长期生活记录器。',
+    input: '把这个月的新照片继续放进我的时光回廊。',
+    output: '近期日常 / 周末片段 / 和朋友的周末。',
+    future: '持续归档规则、默认仅自己可见、确认后再保存或分享。',
+  },
 ]
 
 export default function Home({ onStart, onViewExample }) {
@@ -79,13 +87,30 @@ export default function Home({ onStart, onViewExample }) {
 }
 
 function ImmersiveHero({ onStart, onViewExample }) {
+  const [pointer, setPointer] = useState({ x: 0, y: 0 })
+
   return (
-    <section id="top" className="relative min-h-screen overflow-hidden px-5 pb-12 pt-6 sm:px-6 lg:px-8">
+    <section
+      id="top"
+      className="hero-scene relative min-h-[100svh] overflow-hidden px-5 pb-12 pt-6 sm:px-6 lg:px-8"
+      style={{
+        '--hero-x': pointer.x,
+        '--hero-y': pointer.y,
+      }}
+      onMouseMove={(event) => {
+        const rect = event.currentTarget.getBoundingClientRect()
+        setPointer({
+          x: ((event.clientX - rect.left) / rect.width - 0.5).toFixed(3),
+          y: ((event.clientY - rect.top) / rect.height - 0.5).toFixed(3),
+        })
+      }}
+      onMouseLeave={() => setPointer({ x: 0, y: 0 })}
+    >
       <Atmosphere />
       <FloatingNav onStart={onStart} />
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-104px)] max-w-6xl flex-col items-center justify-center pb-24 pt-20 text-center">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-sky-200/20 bg-white/[0.08] px-4 py-2 text-sm text-sky-100 shadow-2xl shadow-sky-500/10 backdrop-blur-2xl">
+      <div className="relative z-20 mx-auto flex min-h-[calc(100svh-104px)] max-w-6xl flex-col items-center justify-center pb-28 pt-20 text-center">
+        <div className="hero-eyebrow mb-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm text-sky-100">
           <Sparkles size={15} className="text-sky-200" />
           腾讯生态里的 AI 记忆整理工具
         </div>
@@ -98,7 +123,7 @@ function ImmersiveHero({ onStart, onViewExample }) {
         </DisplayTitle>
 
         <p className="mt-7 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
-          从 QQ 空间旧相册、说说评论与好友互动中，AI 自动整理出可回看的个人时光档案。
+          AI 帮你整理 QQ 空间旧回忆，也让今天的照片继续存进未来，让 QQ 空间重新成为你的生活记录器。
         </p>
 
         <div className="mt-9 flex flex-wrap justify-center gap-4">
@@ -112,9 +137,9 @@ function ImmersiveHero({ onStart, onViewExample }) {
           </Button>
         </div>
 
-        <div className="mt-14 grid w-full max-w-4xl grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-16 grid w-full max-w-4xl grid-cols-2 gap-3 sm:grid-cols-4">
           {anchors.map(({ icon: Icon, label }) => (
-            <div key={label} className="rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-sm text-slate-300 shadow-xl shadow-black/10 backdrop-blur-2xl">
+            <div key={label} className="hero-anchor rounded-full px-4 py-3 text-sm text-slate-300">
               <div className="flex items-center justify-center gap-2">
                 <Icon size={16} className="text-sky-200" />
                 <span>{label}</span>
@@ -132,7 +157,7 @@ function ImmersiveHero({ onStart, onViewExample }) {
 function FloatingNav({ onStart }) {
   return (
     <header className="relative z-30 mx-auto flex max-w-3xl justify-center">
-      <nav className="flex h-14 w-full items-center justify-between gap-4 rounded-full border border-white/[0.12] bg-slate-950/[0.45] px-3 text-sm shadow-2xl shadow-black/[0.35] backdrop-blur-2xl sm:px-4">
+      <nav className="hero-nav flex h-14 w-full items-center justify-between gap-4 rounded-full px-3 text-sm sm:px-4">
         <a href="#top" className="flex min-w-max items-center gap-2 rounded-full px-2 text-white">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-sky-200">
             <Clock3 size={16} />
@@ -162,31 +187,49 @@ function FloatingNav({ onStart }) {
 
 function Atmosphere() {
   return (
-    <div className="pointer-events-none absolute inset-0">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(70,162,255,0.18),transparent_30%),radial-gradient(circle_at_50%_86%,rgba(255,176,128,0.1),transparent_23%),radial-gradient(circle_at_50%_88%,rgba(144,92,255,0.13),transparent_30%),linear-gradient(180deg,#020713_0%,#061225_45%,#030711_100%)]" />
-      <div className="memory-grid absolute inset-0 opacity-40" />
-      <div className="memory-noise absolute inset-0 opacity-[0.07]" />
-      <div className="time-dome absolute left-1/2 top-[18%] h-[72vw] max-h-[720px] min-h-[420px] w-[132vw] max-w-[1320px] -translate-x-1/2 rounded-[50%] border border-sky-200/20" />
-      <div className="time-dome-soft absolute left-1/2 top-[21%] h-[62vw] max-h-[620px] min-h-[360px] w-[116vw] max-w-[1160px] -translate-x-1/2 rounded-[50%]" />
-      <div className="absolute left-1/2 top-[23%] h-[48vw] max-h-[520px] min-h-[300px] w-[100vw] max-w-[1040px] -translate-x-1/2 rounded-[50%] border border-sky-100/[0.08] shadow-[0_-24px_90px_rgba(106,183,255,0.14)]" />
-      <div className="horizon-glow absolute bottom-[18%] left-1/2 h-20 w-[74vw] -translate-x-1/2 rounded-full bg-cyan-200/20 blur-3xl" />
-      <div className="absolute bottom-0 left-0 right-0 h-[38vh] bg-gradient-to-t from-[#02050b] via-[#07111e]/92 to-transparent" />
-      <div className="mountain-range mountain-back absolute bottom-[11%] left-1/2 h-40 w-[120vw] -translate-x-1/2 bg-[#07111d]/90" />
-      <div className="mountain-range mountain-front absolute bottom-[7%] left-1/2 h-44 w-[120vw] -translate-x-1/2 bg-[#03070d]" />
-      <div className="absolute bottom-[16%] left-1/2 h-px w-[70vw] -translate-x-1/2 bg-gradient-to-r from-transparent via-sky-200/55 to-transparent" />
-      <div className="memory-figure absolute bottom-[12%] left-1/2 h-28 w-12 -translate-x-1/2" />
+    <div className="hero-atmosphere pointer-events-none absolute inset-0">
+      <div className="hero-deep-space absolute inset-0" />
+      <div className="memory-grid absolute inset-0 opacity-30" />
+      <div className="memory-noise absolute inset-0 opacity-[0.08]" />
+      <div className="hero-starfield absolute inset-0" />
+
+      <div className="memory-timefield absolute left-1/2 top-[49%] h-[52rem] w-[150vw] max-w-[1500px] -translate-x-1/2 -translate-y-1/2">
+        <div className="time-orbit orbit-outer" />
+        <div className="time-orbit orbit-mid" />
+        <div className="time-orbit orbit-inner" />
+        <div className="time-orbit orbit-core" />
+        <div className="time-stream stream-a" />
+        <div className="time-stream stream-b" />
+        <div className="time-stream stream-c" />
+        <div className="memory-glow-point glow-a" />
+        <div className="memory-glow-point glow-b" />
+        <div className="memory-glow-point glow-c" />
+      </div>
+
+      <div className="hero-memory-card card-a">
+        <span>2018 毕业季</span>
+      </div>
+      <div className="hero-memory-card card-b">
+        <span>说说 · 评论 · 合影</span>
+      </div>
+      <div className="hero-memory-card card-c">
+        <span>本地照片补全</span>
+      </div>
+
+      <div className="absolute bottom-0 left-0 right-0 h-[34vh] bg-gradient-to-t from-[#02050b] via-[#07111e]/82 to-transparent" />
+      <div className="hero-horizon absolute bottom-[14%] left-1/2 h-px w-[78vw] -translate-x-1/2" />
     </div>
   )
 }
 
 function InsightFloaters() {
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-[16%] z-20 mx-auto hidden max-w-6xl px-6 lg:block">
+    <div className="pointer-events-none absolute inset-x-0 bottom-[12%] z-20 mx-auto hidden max-w-6xl px-6 lg:block">
       <div className="relative h-36">
         {insightLayers.map((text, index) => (
           <div
             key={text}
-            className="absolute flex items-center gap-3 rounded-2xl border border-white/[0.12] bg-slate-950/[0.35] px-4 py-3 text-sm text-slate-200 shadow-2xl shadow-black/[0.35] backdrop-blur-2xl"
+            className="hero-insight absolute flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-slate-200"
             style={{
               left: index === 0 ? '2%' : index === 1 ? '68%' : '55%',
               top: index === 0 ? '10px' : index === 1 ? '34px' : '104px',
@@ -217,17 +260,17 @@ function FeatureSection() {
               产品亮点
             </p>
             <DisplayTitle as="h2" className="max-w-2xl text-3xl font-semibold leading-tight md:text-4xl">
-              把散落的旧资料，重建成可回看的个人时光档案
+              把散落的旧资料重建成档案，也让今天继续生长
             </DisplayTitle>
           </div>
 
           <div className="flex max-w-md items-start gap-3 rounded-[1.5rem] border border-white/[0.08] bg-white/[0.04] p-4 text-sm leading-6 text-slate-300 shadow-2xl shadow-black/15 backdrop-blur-2xl">
             <LockKeyhole size={18} className="mt-1 shrink-0 text-sky-200" />
-            仅在授权后读取 QQ 空间、相册与互动数据，用户可随时管理导入范围。
+            旧回忆整理完成后，也可以从今天开始持续记录，默认由你掌控可见范围。
           </div>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-4">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-5">
           {featureCards.map(({ icon: Icon, title, desc }) => (
             <article key={title} className="group rounded-[1.6rem] border border-white/[0.08] bg-white/[0.042] p-6 shadow-2xl shadow-black/18 backdrop-blur-2xl transition hover:-translate-y-1 hover:border-sky-200/22 hover:bg-white/[0.07]">
               <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-200/18 bg-sky-200/[0.08] text-sky-100 shadow-xl shadow-sky-400/10">
@@ -236,7 +279,7 @@ function FeatureSection() {
               <h3 className="text-xl font-semibold tracking-normal text-white">{title}</h3>
               <p className="mt-4 text-sm leading-7 text-slate-300">{desc}</p>
               <button onClick={() => setActiveFeature(featureCards.find((item) => item.title === title))} className="mt-8 flex items-center gap-2 text-sm font-semibold text-sky-100">
-                查看能力
+                {title === '从今天开始记录' ? '了解持续归档' : '查看能力'}
                 <ArrowRight size={16} className="transition group-hover:translate-x-1" />
               </button>
             </article>
@@ -302,8 +345,8 @@ function ExperienceSection() {
           <Route size={16} />
           体验流程
         </p>
-        <DisplayTitle as="h2" className="max-w-2xl text-3xl font-semibold leading-tight md:text-4xl">
-          从旧资料到回忆页，每一步都为真实 AI 接入预留
+          <DisplayTitle as="h2" className="max-w-2xl text-3xl font-semibold leading-tight md:text-4xl">
+          从旧资料到持续记录，形成完整的个人时光闭环
         </DisplayTitle>
         <div className="relative mt-12">
           <div className="flow-track hidden md:block" />
@@ -314,7 +357,7 @@ function ExperienceSection() {
               [Sparkles, 'AI 分析', '识别时间、人物与语义'],
               [Camera, '生成记忆包', '把碎片聚成档案'],
               [MessageCircle, '查看详情', '展开照片与互动上下文'],
-              [WandSparkles, '生成回忆页', '形成可展示的纪念页'],
+              [WandSparkles, '保存并持续记录', '让今天成为未来可回看的记忆'],
             ].map(([Icon, title, desc], index) => (
               <div key={title} className="relative rounded-[1.35rem] border border-white/[0.09] bg-slate-900/[0.38] p-4 shadow-2xl shadow-black/18 backdrop-blur-2xl transition hover:-translate-y-1 hover:border-sky-200/25 hover:bg-white/[0.06]">
                 <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-sky-100/45 to-transparent" />
@@ -341,6 +384,7 @@ function PrivacySection() {
   const items = [
     '仅在用户授权范围内读取 QQ 空间、相册与互动数据',
     '本地图片仅用于浏览器本地预览，不上传服务器',
+    '新的生活记录默认仅自己可见，确认后再选择保存、分享或同步到 QQ 空间',
     '好友互动仅分析频率、共同出现和评论关系，不展示私聊内容',
     '用户可随时隐藏、删除或取消关联',
   ]

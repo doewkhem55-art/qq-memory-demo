@@ -127,8 +127,8 @@ export default function ImportMemory({ initialState, onBack, onStart }) {
 
   return (
     <PageShell title="选择要整理的记忆来源" eyebrow="记忆导入" onBack={onBack}>
-      <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="space-y-6">
+      <div className="grid gap-8 lg:grid-cols-[1.08fr_0.92fr]">
+        <div className="space-y-8">
           <section className="grid gap-4 sm:grid-cols-2">
             {sourceOptions.map(({ id, icon: Icon, name, desc }) => {
               const checked = selectedSources.includes(id)
@@ -136,13 +136,13 @@ export default function ImportMemory({ initialState, onBack, onStart }) {
                 <button
                   key={id}
                   onClick={() => toggleSource(id)}
-                  className={`rounded-[1.75rem] border p-5 text-left shadow-2xl shadow-black/25 backdrop-blur-2xl transition hover:-translate-y-0.5 ${
+                  className={`focus-ring rounded-[1.75rem] p-5 text-left ${
                     checked
-                      ? 'border-sky-200/[0.35] bg-sky-200/[0.12]'
-                      : 'border-white/10 bg-white/[0.055] hover:bg-white/[0.08]'
+                      ? 'memory-option memory-option-active'
+                      : 'memory-option'
                   }`}
                 >
-                  <div className="mb-8 flex items-center justify-between">
+                  <div className="mb-7 flex items-center justify-between">
                     <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-200/20 bg-sky-200/10 text-sky-100">
                       <Icon size={22} />
                     </span>
@@ -151,39 +151,42 @@ export default function ImportMemory({ initialState, onBack, onStart }) {
                     </span>
                   </div>
                   <h2 className="text-xl font-semibold text-white">{name}</h2>
-                  <p className="mt-3 text-sm leading-7 text-slate-300">{desc}</p>
+                  <p className="mt-3 line-clamp-2 text-sm leading-7 text-slate-300">{desc}</p>
                 </button>
               )
             })}
           </section>
 
-          <GlassCard className="rounded-[1.75rem] p-6">
-            <h2 className="text-xl font-semibold text-white">你想如何整理这批记忆？</h2>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <GlassCard className="rounded-[2rem] p-6 sm:p-7">
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium text-sky-100">智能整理方式</p>
+              <h2 className="text-2xl font-semibold text-white">你想如何整理这批记忆？</h2>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
               {classificationOptions.map(({ id, icon: Icon, title, example }) => {
                 const active = classificationMode === id
                 return (
                   <button
                     key={id}
                     onClick={() => setClassificationMode(id)}
-                    className={`rounded-3xl border p-4 text-left transition ${
+                    className={`focus-ring rounded-[1.5rem] p-4 text-left ${
                       active
-                        ? 'border-sky-200/[0.35] bg-sky-200/[0.12]'
-                        : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.075]'
+                        ? 'memory-option memory-option-active'
+                        : 'memory-option'
                     }`}
                   >
-                    <div className="mb-3 flex items-center gap-3">
+                    <div className="mb-4 flex items-center gap-3">
                       <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-sky-100">
                         <Icon size={18} />
                       </span>
                       <span className="font-semibold text-white">{title}</span>
                     </div>
-                    <p className="text-xs leading-5 text-slate-400">示例：{example}</p>
+                    <p className="line-clamp-2 text-xs leading-5 text-slate-400">{example}</p>
                   </button>
                 )
               })}
             </div>
-            <div className="mt-5">
+            <div className="mt-6">
               <label htmlFor="customPrompt" className="mb-3 block text-sm font-semibold text-sky-100">
                 告诉 AI 你的整理偏好（可选）
               </label>
@@ -192,36 +195,39 @@ export default function ImportMemory({ initialState, onBack, onStart }) {
                 value={customPrompt}
                 onChange={(event) => setCustomPrompt(event.target.value)}
                 placeholder="例如：帮我按小学、初中、高中、大学来整理；或者帮我找出和家人、朋友、同学有关的回忆"
-                className="min-h-28 w-full resize-none rounded-3xl border border-white/10 bg-slate-950/50 p-4 text-sm leading-7 text-white outline-none ring-0 placeholder:text-slate-500 focus:border-sky-200/40"
+                className="memory-input min-h-28 resize-none rounded-3xl p-4 text-sm leading-7"
               />
-              <p className="mt-2 text-xs leading-5 text-slate-400">
+              <p className="mt-3 text-xs leading-5 text-slate-400">
                 选择“自定义 AI 分类指令”时，这段文字会作为主要分类依据；选择其他方式时，它会作为补充偏好。
               </p>
             </div>
           </GlassCard>
         </div>
 
-        <div className="space-y-5">
-          <GlassCard className="rounded-[1.75rem] p-6">
+        <div className="space-y-6">
+          <GlassCard className="rounded-[2rem] p-5 sm:p-6">
             <div className="mb-5 flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-sky-100">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-sky-100">
                 <ImagePlus size={21} />
               </span>
               <div>
-                <h2 className="font-semibold text-white">本地图片预留入口</h2>
-                <p className="text-sm text-slate-400">图片仅用于浏览器本地预览，不会上传服务器。</p>
+                <h2 className="font-semibold text-white">记忆投放区</h2>
+                <p className="text-sm text-slate-400">把本地旧照片临时放入本次整理。</p>
               </div>
             </div>
-            <label className="block cursor-pointer rounded-3xl border border-dashed border-sky-200/25 bg-sky-200/[0.06] p-6 text-center transition hover:bg-sky-200/[0.1]">
+            <label className="focus-ring memory-dropzone block min-h-64 cursor-pointer rounded-[1.75rem] p-8 text-center">
               <input type="file" accept="image/*" multiple className="hidden" onChange={handleFiles} />
-              <p className="text-sm font-semibold text-sky-100">选择本地照片用于模拟识别</p>
-              <p className="mt-2 text-xs leading-5 text-slate-400">未来可将 uploadedFiles 传给真实图片识别 API。</p>
+              <span className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-sky-100/20 bg-sky-200/10 text-sky-100 shadow-[0_0_34px_rgba(125,211,252,0.2)]">
+                <ImagePlus size={26} />
+              </span>
+              <p className="text-base font-semibold text-sky-50">选择照片，补全这段时光</p>
+              <p className="mx-auto mt-3 max-w-xs text-xs leading-6 text-slate-400">仅用于浏览器本地预览，不上传服务器。</p>
             </label>
             {uploadedFiles.length > 0 ? (
-              <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="mt-5 grid grid-cols-2 gap-3">
                 {uploadedFiles.map((file) => (
-                  <div key={file.id} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.055]">
-                    <img src={file.previewUrl} alt={file.fileName} className="h-24 w-full object-cover" />
+                  <div key={file.id} className="memory-panel overflow-hidden rounded-2xl">
+                    <img src={file.previewUrl} alt={file.fileName} className="h-28 w-full object-cover" />
                     <div className="truncate px-3 py-2 text-xs text-slate-300">{file.fileName}</div>
                   </div>
                 ))}

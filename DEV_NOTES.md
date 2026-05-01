@@ -70,3 +70,27 @@
 验证：
 - `npm run build` 已通过。
 - 3B curated 图片、上传图片优先级、PhotoLightbox 和 recent 持续归档入口未改动核心逻辑。
+
+## 4A 保存记录
+
+本次完成第四阶段 4A 的首页动态主视觉、持续记录表达和回忆页文案体验收口。
+
+实现要点：
+- Home 首页 Hero 已完成动态主视觉升级，使用 CSS/SVG/渐变与轻量交互构建深蓝黑时光场、蓝紫光环、光流、星点和空间纵深，不引入重依赖。
+- Home 文案已补充“未来持续记录 / QQ 空间成为个人生活记录器”的产品闭环：旧回忆整理 -> 产生记录欲望 -> 继续记录当下 -> 形成长期生活档案。
+- `aiMemoryService.js` 新增 `generateMemoryEssay(cluster)`，根据相册标题、摘要、标签、分类依据、说说评论、好友互动和 recent 状态生成差异化回忆页短文。
+- `MemoryPage` 的“AI 生成短文”支持编辑，保存后写入 `memoryPageText`，并优先显示用户修改后的文案。
+- 未接入真实后端或真实大模型接口，仍基于当前 mockData / demo state 运行。
+
+验证：
+- 已检查高中毕业季、大学开学、班级聚餐、家人旅行等相册短文互不相同。
+- 已检查用户编辑覆盖字段会优先显示在回忆页短文中。
+- 首页动态 Hero 和“未来持续记录”文案保留。
+- MemoryClusters、MemoryDetail、MemoryPage 主链路保持可渲染。
+- 相册管理、封面设置、移除照片、可见性、删除入口、PhotoLightbox、curated 图片、用户上传优先级和 recent 持续归档链路保持稳定。
+- `npm run build` 已通过。
+
+后续注意：
+- 不要再大改首页 Hero。
+- 不要破坏 `generateMemoryEssay` 和 `memoryPageText` 的编辑覆盖逻辑。
+- 继续保持 3B/3C 图片与管理链路稳定。

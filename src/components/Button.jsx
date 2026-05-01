@@ -10,7 +10,7 @@ export default function Button({ children, variant = 'primary', className = '', 
 
   return (
     <button
-      className={`inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold shadow-2xl transition duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-45 ${styles} ${className}`}
+      className={`focus-ring inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold shadow-2xl transition duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-45 ${styles} ${className}`}
       {...props}
     >
       {children}

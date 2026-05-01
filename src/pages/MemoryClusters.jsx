@@ -82,7 +82,7 @@ export default function MemoryClusters({
           : ' 当前未导入本地图片。'}
       </div>
       {analysisResult.customPrompt ? (
-        <div className="mb-6 max-w-3xl rounded-[1.35rem] border border-sky-200/18 bg-sky-200/[0.08] px-5 py-4">
+        <div className="memory-panel mb-6 max-w-3xl rounded-[1.35rem] px-5 py-4">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-100/80">
             AI 分类指令
           </p>
@@ -141,8 +141,8 @@ function ClassificationBasisPanel({
   onClose,
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/55 backdrop-blur-sm">
-      <aside className="h-full w-full max-w-2xl overflow-y-auto border-l border-white/10 bg-slate-950/92 p-6 text-white shadow-2xl shadow-black/50">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/62 backdrop-blur-md">
+      <aside className="memory-panel-strong h-full w-full max-w-2xl overflow-y-auto border-l p-6 text-white">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <p className="mb-2 flex items-center gap-2 text-sm text-sky-100">
@@ -150,42 +150,43 @@ function ClassificationBasisPanel({
               AI 分类依据
             </p>
             <h2 className="text-2xl font-semibold">本次记忆包生成说明</h2>
+            <div className="aurora-divider mt-4 w-full max-w-md" />
           </div>
-          <button onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-slate-200 transition hover:bg-white/[0.12]" aria-label="关闭分类依据面板">
+          <button onClick={onClose} className="focus-ring flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-slate-200 transition hover:bg-white/[0.12]" aria-label="关闭分类依据面板">
             <X size={18} />
           </button>
         </div>
 
         <div className="space-y-5">
-          <section className="rounded-[1.35rem] border border-white/[0.08] bg-white/[0.04] p-5">
+          <section className="memory-panel rounded-[1.35rem] p-5">
             <h3 className="mb-3 text-sm font-semibold text-sky-100">本次整理方式</h3>
             <p className="text-sm leading-7 text-slate-300">{modeLabel}</p>
             {customPrompt ? (
-              <p className="mt-3 rounded-2xl bg-sky-200/[0.08] px-4 py-3 text-sm leading-6 text-sky-100">
+              <p className="memory-chip mt-3 rounded-2xl px-4 py-3 text-sm leading-6">
                 用户输入的 AI 分类指令：{customPrompt}
               </p>
             ) : null}
           </section>
 
-          <section className="rounded-[1.35rem] border border-white/[0.08] bg-white/[0.04] p-5">
+          <section className="memory-panel rounded-[1.35rem] p-5">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-sky-100">
               <Database size={15} />
               本次读取的数据源
             </h3>
             <div className="flex flex-wrap gap-2">
               {dataSources.map((source) => (
-                <span key={source} className="rounded-full border border-white/10 bg-white/[0.055] px-3 py-1 text-xs text-slate-300">
+                <span key={source} className="memory-chip rounded-full px-3 py-1 text-xs">
                   {sourceLabels[source] || source}
                 </span>
               ))}
             </div>
           </section>
 
-          <section className="rounded-[1.35rem] border border-white/[0.08] bg-white/[0.04] p-5">
+          <section className="memory-panel rounded-[1.35rem] p-5">
             <h3 className="mb-3 text-sm font-semibold text-sky-100">本次生成的分类维度</h3>
             <div className="flex flex-wrap gap-2">
               {generatedDimensions.map((dimension) => (
-                <span key={dimension} className="rounded-full bg-sky-200/[0.09] px-3 py-1 text-xs text-sky-100">
+                <span key={dimension} className="memory-chip rounded-full px-3 py-1 text-xs">
                   {dimension}
                 </span>
               ))}
@@ -193,14 +194,14 @@ function ClassificationBasisPanel({
             <p className="mt-4 text-sm text-slate-300">共生成 {clusters.length} 个记忆包。</p>
           </section>
 
-          <section className="rounded-[1.35rem] border border-white/[0.08] bg-white/[0.04] p-5">
+          <section className="memory-panel rounded-[1.35rem] p-5">
             <h3 className="mb-4 text-sm font-semibold text-sky-100">每个记忆包的主要依据</h3>
             <div className="space-y-4">
               {clusters.map((cluster) => (
-                <div key={cluster.id} className="rounded-2xl border border-white/[0.08] bg-slate-950/35 p-4">
+                <div key={cluster.id} className="memory-panel rounded-2xl p-4">
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <h4 className="font-semibold text-white">{cluster.title}</h4>
-                    <span className="rounded-full bg-white/[0.06] px-3 py-1 text-xs text-slate-300">
+                    <span className="memory-chip rounded-full px-3 py-1 text-xs">
                       置信度 {cluster.aiConfidence}%
                     </span>
                   </div>
@@ -214,7 +215,7 @@ function ClassificationBasisPanel({
             </div>
           </section>
 
-          <section className="rounded-[1.35rem] border border-sky-200/15 bg-sky-200/[0.07] p-5">
+          <section className="memory-panel rounded-[1.35rem] p-5">
             <h3 className="mb-3 text-sm font-semibold text-sky-100">未来 AI 接口预留说明</h3>
             <p className="text-sm leading-7 text-slate-300">
               当前为演示环境，分类结果用于展示产品体验流程。未来可接入多模态模型，进一步识别照片中的人物、场景、颜色、情绪与时间信息。

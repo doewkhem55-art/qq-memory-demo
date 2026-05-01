@@ -70,15 +70,16 @@ export default function MemoryManagePanel({
   }
 
   return (
-    <div className="fixed inset-0 z-[65] flex justify-end bg-black/58 backdrop-blur-sm">
-      <aside className="h-full w-full max-w-2xl overflow-y-auto border-l border-white/10 bg-slate-950/92 p-6 text-white shadow-2xl shadow-black/50">
-        <div className="mb-6 flex items-start justify-between gap-4">
+    <div className="fixed inset-0 z-[65] flex justify-end bg-black/66 backdrop-blur-md">
+      <aside className="memory-panel-strong memory-scrollbar h-full w-full max-w-2xl overflow-y-auto border-l p-6 text-white sm:p-7">
+        <div className="mb-7 flex items-start justify-between gap-4">
           <div>
             <p className="mb-2 text-sm text-sky-100">管理记忆包</p>
-            <h2 className="text-2xl font-semibold">AI 已为你整理完成，你可以继续调整这段记忆。</h2>
+            <h2 className="max-w-xl text-2xl font-semibold leading-tight">调整这段记忆的封面、标题与可见范围。</h2>
+            <div className="aurora-divider mt-4 w-full max-w-md" />
             <div className="mt-3 h-6">
               {saveMessage ? (
-                <span className="inline-flex items-center gap-2 rounded-full border border-sky-200/15 bg-sky-200/[0.08] px-3 py-1 text-xs text-sky-100">
+                <span className="memory-chip inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs">
                   <CheckCircle2 size={14} />
                   {saveMessage}
                 </span>
@@ -88,17 +89,17 @@ export default function MemoryManagePanel({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-slate-200 transition hover:bg-white/[0.12]"
+            className="focus-ring flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-slate-200 transition hover:bg-white/[0.12]"
             aria-label="关闭管理面板"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="space-y-5">
-          <section className="rounded-[1.35rem] border border-white/[0.08] bg-white/[0.04] p-4">
+        <div className="space-y-6">
+          <section>
             <p className="mb-3 text-sm font-semibold text-sky-100">当前封面</p>
-            <div className="h-48 overflow-hidden rounded-[1.15rem]">
+            <div className="memory-cover-stage h-64 rounded-[1.5rem]">
               <PhotoCard
                 title={coverPhoto?.title || cluster.title}
                 src={coverPhoto?.src}
@@ -108,7 +109,7 @@ export default function MemoryManagePanel({
                 isPlaceholder={coverPhoto?.isPlaceholder}
                 showMeta={false}
                 showDescription={false}
-                className="h-full rounded-[1.15rem] shadow-none"
+                className="h-full rounded-[1.5rem] shadow-none"
                 aspect=""
               />
             </div>
@@ -117,25 +118,25 @@ export default function MemoryManagePanel({
             </p>
           </section>
 
-          <label className="block rounded-[1.35rem] border border-white/[0.08] bg-white/[0.04] p-4">
+          <label className="block">
             <span className="text-sm font-semibold text-sky-100">记忆包标题</span>
             <input
               value={titleDraft}
               onChange={(event) => syncUpdate({ title: event.target.value })}
-              className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-white outline-none focus:border-sky-200/40"
+              className="memory-input mt-3 rounded-2xl px-4 py-3 text-sm"
             />
           </label>
 
-          <label className="block rounded-[1.35rem] border border-white/[0.08] bg-white/[0.04] p-4">
+          <label className="block">
             <span className="text-sm font-semibold text-sky-100">记忆包描述</span>
             <textarea
               value={summaryDraft}
               onChange={(event) => syncUpdate({ summary: event.target.value })}
-              className="mt-3 min-h-32 w-full resize-none rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm leading-7 text-white outline-none focus:border-sky-200/40"
+              className="memory-input mt-3 min-h-32 resize-none rounded-2xl px-4 py-3 text-sm leading-7"
             />
           </label>
 
-          <section className="rounded-[1.35rem] border border-white/[0.08] bg-white/[0.04] p-4">
+          <section className="memory-panel rounded-[1.5rem] p-4">
             <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-sky-100">
               <ActiveVisibilityIcon size={16} />
               可见性设置
@@ -150,10 +151,10 @@ export default function MemoryManagePanel({
                     key={option.value}
                     type="button"
                     onClick={() => syncVisibility(option.value)}
-                    className={`min-h-24 rounded-2xl border p-3 text-left text-sm transition ${
+                    className={`focus-ring min-h-24 rounded-2xl p-3 text-left text-sm ${
                       selected
-                        ? 'border-sky-200/[0.42] bg-sky-200/[0.13] text-sky-50'
-                        : 'border-white/10 bg-white/[0.045] text-slate-300 hover:bg-white/[0.08]'
+                        ? 'memory-option memory-option-active text-sky-50'
+                        : 'memory-option text-slate-300'
                     }`}
                   >
                     <Icon size={16} className="mb-2 text-sky-100" />
@@ -164,7 +165,7 @@ export default function MemoryManagePanel({
             </div>
           </section>
 
-          <section className="rounded-[1.35rem] border border-white/[0.08] bg-white/[0.035] p-4">
+          <section className="memory-panel rounded-[1.5rem] p-4">
             <h3 className="mb-2 text-sm font-semibold text-slate-100">删除 / 隐藏记忆包</h3>
             <p className="text-sm leading-6 text-slate-300">
               从当前整理结果中移除这段记忆，不会删除原始照片或本地素材。
@@ -182,8 +183,8 @@ export default function MemoryManagePanel({
       </aside>
 
       {deleteConfirmOpen ? (
-        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/62 px-5 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-[1.5rem] border border-white/10 bg-slate-950/95 p-6 text-white shadow-2xl shadow-black/45">
+        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/66 px-5 backdrop-blur-md">
+          <div className="memory-panel-strong w-full max-w-md rounded-[1.5rem] p-6 text-white">
             <h3 className="text-xl font-semibold">确认删除这个记忆包吗？</h3>
             <p className="mt-3 text-sm leading-7 text-slate-300">
               这只会从当前整理结果中移除，不会删除原始照片或本地素材。删除后你可以重新整理生成新的记忆包。

@@ -157,6 +157,93 @@ function templateForCluster(cluster) {
   return contentTemplates.default
 }
 
+const textOf = (value) => {
+  if (!value) return ''
+  if (Array.isArray(value)) return value.filter(Boolean).join(' ')
+  if (typeof value === 'object') return Object.values(value).map(textOf).join(' ')
+  return String(value)
+}
+
+const cleanText = (value = '') => String(value).replace(/\s+/g, ' ').trim()
+
+const hasAny = (text, patterns) => patterns.some((pattern) => pattern.test(text))
+
+export function generateMemoryEssay(cluster = {}) {
+  const editedText = [
+    cluster.memoryPageText,
+    cluster.generatedMemoryText,
+    cluster.aiGeneratedText,
+  ].find((value) => cleanText(value))
+
+  if (editedText) return cleanText(editedText)
+
+  const title = cluster.title || '这段记忆'
+  const tags = cluster.tags || []
+  const themeText = cleanText([
+    cluster.id,
+    title,
+    cluster.highlight,
+    cluster.summary,
+    textOf(tags),
+    textOf(cluster.classificationBasis),
+  ].join(' '))
+  const text = cleanText([
+    themeText,
+    textOf(cluster.relatedPostsData),
+    textOf(cluster.relatedCommentsData),
+    textOf(cluster.relatedFriendsData),
+    textOf(cluster.interactionSummary),
+  ].join(' '))
+  const hasLocalPhotos =
+    (cluster.dataSources || []).includes('local_album') ||
+    hasAny(text, [/本地照片/, /本地相册/, /补全/])
+  const photoCount = cluster.photoCount ? `${cluster.photoCount} 张照片` : '照片'
+
+  if (cluster.isUserArchive || /^recent-/.test(cluster.id || '') || hasAny(themeText, [/最近/, /近期/, /持续归档/])) {
+    return `这组「${title}」把最近加入的${photoCount}先收进时光回廊。它不是对旧资料的整理，而是从今天开始继续记录生活，让新的日常也能按同一套记忆规则慢慢长成未来可回看的档案。`
+  }
+
+  if (hasAny(themeText, [/高中/, /毕业/, /告别/, /操场/, /高考/])) {
+    return `这个夏天，你和高中同学完成了毕业、聚餐、合影和告别。照片里的操场、教室与同学留言，把那段即将分开的日子重新串成了一条清晰的时间线。`
+  }
+
+  if (hasAny(themeText, [/军训/, /训练/, /合照/])) {
+    return `军训里的队列、合影和同学互动被放回同一段校园时间线中。那些密集又有点新鲜的日子，被整理成一段关于新集体和共同经历的记忆。`
+  }
+
+  if (hasAny(themeText, [/聚餐/, /班级/, /热闹/, /聚会/, /生日/])) {
+    return `这组「${title}」记录了朋友之间最热闹的一段时间。高频出现的人、共同留下的留言和相册中的合影，被整理成一段带有生活气息的集体记忆。`
+  }
+
+  if (hasAny(themeText, [/大学/, /开学/, /报到/, /校园/, /宿友/])) {
+    return `从报到到认识新朋友，第一批校园照片和家人留言一起构成了大学生活的起点。AI 已经把这些片段整理成一段关于新环境、新关系和新生活的记忆。`
+  }
+
+  if (hasAny(themeText, [/家人/, /亲人/, /旅行/, /出行/, /家庭/])) {
+    const localPart = hasLocalPhotos ? '本地相册补全内容和 QQ 空间中的互动记录' : '相册照片、出行线索和亲人互动记录'
+    return `这段记忆围绕家人、出行地点和共同出现的照片展开。AI 将${localPart}放在一起，形成了一段更完整的家庭旅行回忆。`
+  }
+
+  if (hasAny(themeText, [/朋友/, /好友/, /联系/, /互动/, /留言/, /同框/])) {
+    return `这段「${title}」更像一张关系地图：评论、留言和同框照片一起浮现出当年经常联系的人。AI 把这些互动线索整理在一起，让那段朋友关系重新变得清楚。`
+  }
+
+  if (hasAny(themeText, [/自己/, /个人/, /成长/, /变化/, /独处/, /发色/, /穿搭/, /外观/])) {
+    return `这组「${title}」主要记录你自己的阶段变化。照片里的状态、穿搭、动态文字和时间线被放在一起，呈现出一段更安静但很具体的个人成长片段。`
+  }
+
+  if (hasAny(themeText, [/自定义/, /指令/, /整理偏好/, /情绪/, /开心/, /难过/])) {
+    const tagText = tags.slice(0, 2).join('、') || title
+    return `这段「${title}」是按你的整理偏好生成的记忆包。AI 优先读取「${tagText}」相关的照片、动态和互动线索，把原本分散的片段合成一段更贴近你表达方式的回忆。`
+  }
+
+  const tagText = tags.slice(0, 2).join('、') || '照片、说说和好友互动'
+  const summaryText = cleanText(cluster.summary)
+  return summaryText
+    ? `围绕「${title}」，AI 结合${tagText}等线索重新梳理了这段记忆。${summaryText}`
+    : `围绕「${title}」，AI 已经把相关照片、说说评论和互动关系整理成一段可回看的记忆，并保留给你继续调整和补充。`
+}
+
 function enrichCluster(cluster) {
   const template = templateForCluster(cluster)
   const relatedPostsData = template.posts.map((content, index) => ({
@@ -898,7 +985,7 @@ export async function generateMemoryPage(clusterId, analysisResult) {
     clusterId: cluster.id,
     title: `你的「${cluster.title}」回忆页已生成`,
     timeRange: cluster.timeRange,
-    essay: `系统已经把「${cluster.title}」中的照片、说说、评论和好友关系整理成一页可回看的记忆。你可以先设为仅自己可见，确认内容后再选择是否分享到 QQ 空间。`,
+    essay: generateMemoryEssay(cluster),
     selectedPhotoIds: cluster.relatedPhotoIds,
     featuredPostId: cluster.relatedPostIds[0],
     featuredCommentIds: ['comment-001', 'comment-003', 'comment-004'],

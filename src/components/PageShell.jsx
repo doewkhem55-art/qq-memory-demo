@@ -14,7 +14,7 @@ export default function PageShell({ title, eyebrow, children, onBack, actions })
         <header className="mb-12 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
             {onBack ? (
-              <button onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.06] text-slate-200 backdrop-blur-xl transition hover:bg-white/[0.12]" aria-label="返回">
+              <button onClick={onBack} className="focus-ring flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.06] text-slate-200 backdrop-blur-xl transition hover:bg-white/[0.12]" aria-label="返回">
                 <ArrowLeft size={18} />
               </button>
             ) : null}

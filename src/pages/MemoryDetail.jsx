@@ -91,10 +91,10 @@ export default function MemoryDetail({
         </div>
       }
     >
-      <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-        <div className="space-y-5">
-          <GlassCard className="rounded-[1.6rem] p-6">
-            <div className={`mb-6 h-48 overflow-hidden rounded-[1.35rem] bg-gradient-to-br ${currentCluster.coverGradient}`}>
+      <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="space-y-6">
+          <GlassCard className="rounded-[2rem] p-5 sm:p-6">
+            <div className={`memory-cover-stage mb-6 h-80 rounded-[1.65rem] bg-gradient-to-br ${currentCluster.coverGradient}`}>
               <PhotoCard
                 title={currentCluster.title}
                 src={displayPhotos[0]?.src}
@@ -104,29 +104,29 @@ export default function MemoryDetail({
                 source={displayPhotos[0]?.source}
                 isPlaceholder={displayPhotos[0]?.isPlaceholder}
                 badge={currentCluster.highlight}
-                className="h-full rounded-[1.35rem] shadow-none"
+                className="h-full rounded-[1.65rem] shadow-none"
                 aspect=""
                 onPreview={() => setLightboxIndex(0)}
               />
             </div>
-            <div className="mb-4 flex flex-wrap gap-2">
-              {currentCluster.tags.map((tag) => (
+            <div className="mb-5 flex flex-wrap gap-2">
+              {currentCluster.tags.slice(0, 3).map((tag) => (
                 <Tag key={tag}>{tag}</Tag>
               ))}
             </div>
             <h2 className="text-2xl font-semibold text-white">AI 摘要</h2>
             <p className="mt-4 text-sm leading-7 text-slate-300">{currentCluster.summary}</p>
-            <div className="mt-4 rounded-2xl border border-sky-200/14 bg-sky-200/[0.075] px-4 py-3 text-sm leading-6 text-sky-100">
+            <div className="memory-panel mt-5 rounded-2xl px-4 py-3 text-sm leading-6 text-sky-100">
               {visibilityCopy.description}
             </div>
             {uploadedPhotos.length ? (
-              <p className="mt-4 rounded-2xl bg-sky-200/10 px-4 py-3 text-sm text-sky-100">
+              <p className="memory-chip mt-4 rounded-2xl px-4 py-3 text-sm">
                 已有 {uploadedPhotos.length} 张你上传的本地照片被归入这个记忆包。
               </p>
             ) : null}
           </GlassCard>
 
-          <GlassCard className="rounded-[1.6rem] p-6">
+          <GlassCard className="rounded-[2rem] p-6">
             <h2 className="mb-5 flex items-center gap-2 text-lg font-semibold text-white">
               <Sparkles size={18} className="text-sky-200" />
               缺失记忆修复
@@ -154,13 +154,13 @@ export default function MemoryDetail({
           </PrivacyNotice>
         </div>
 
-        <div className="space-y-5">
-          <GlassCard className="rounded-[1.6rem] p-6">
+        <div className="space-y-6">
+          <GlassCard className="rounded-[2rem] p-6">
             <h2 className="mb-6 text-xl font-semibold text-white">记忆时间线</h2>
             <Timeline events={events} />
           </GlassCard>
 
-          <GlassCard className="rounded-[1.6rem] p-6">
+          <GlassCard className="rounded-[2rem] p-5 sm:p-6">
             <h2 className="mb-5 flex items-center gap-2 text-xl font-semibold text-white">
               <Camera size={19} className="text-sky-200" />
               照片墙
@@ -178,14 +178,14 @@ export default function MemoryDetail({
           </GlassCard>
 
           <div className="grid gap-5 md:grid-cols-2">
-            <GlassCard className="rounded-[1.6rem] p-6">
+            <GlassCard className="rounded-[2rem] p-6">
               <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
                 <MessageCircle size={18} className="text-sky-200" />
                 相关说说
               </h2>
               <div className="space-y-4">
                 {clusterPosts.length ? clusterPosts.map((post) => (
-                  <div key={post.id} className="rounded-2xl bg-white/[0.035] p-4">
+                  <div key={post.id} className="memory-panel rounded-2xl p-4">
                     <p className="text-sm leading-6 text-slate-200">{post.content}</p>
                     <p className="mt-2 text-xs text-slate-500">{post.date} · {post.visibility === 'private' ? '仅自己可见' : '好友可见'}</p>
                   </div>
@@ -193,7 +193,7 @@ export default function MemoryDetail({
               </div>
             </GlassCard>
 
-            <GlassCard className="rounded-[1.6rem] p-6">
+            <GlassCard className="rounded-[2rem] p-6">
               <h2 className="mb-4 text-lg font-semibold text-white">热门评论</h2>
               <div className="space-y-3">
                 {clusterComments.length ? clusterComments.map((comment) => (
@@ -206,19 +206,19 @@ export default function MemoryDetail({
             </GlassCard>
           </div>
 
-          <GlassCard className="rounded-[1.6rem] p-6">
+          <GlassCard className="rounded-[2rem] p-6">
             <h2 className="mb-5 flex items-center gap-2 text-xl font-semibold text-white">
               <UsersRound size={19} className="text-sky-200" />
               高频互动好友与共同出现的人
             </h2>
             {currentCluster.interactionSummary ? (
-              <p className="mb-5 rounded-2xl bg-white/[0.035] px-4 py-3 text-sm leading-6 text-slate-300">
+              <p className="memory-panel mb-5 rounded-2xl px-4 py-3 text-sm leading-6 text-slate-300">
                 {currentCluster.interactionSummary.summaryText}
               </p>
             ) : null}
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {clusterFriends.map((friend) => (
-                <div key={friend.id} className="rounded-[1.35rem] border border-white/[0.07] bg-white/[0.035] p-4">
+                <div key={friend.id} className="memory-panel rounded-[1.35rem] p-4">
                   <div className={`mb-3 h-12 w-12 rounded-full bg-gradient-to-br ${friend.avatarGradient}`} />
                   <h3 className="font-semibold text-white">{friend.name}</h3>
                   <p className="mt-1 text-xs text-slate-400">{friend.relation}</p>

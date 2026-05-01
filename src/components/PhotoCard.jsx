@@ -47,7 +47,7 @@ export default function PhotoCard({
           ? '相册片段'
           : '')
 
-  const captionPadding = compact ? 'p-2' : 'p-3.5'
+  const captionPadding = compact ? 'p-2' : 'p-4'
   const titleClass = compact
     ? 'truncate text-[11px] font-medium leading-4 text-white/90'
     : 'line-clamp-2 text-sm font-semibold leading-5 text-white/92'
@@ -89,11 +89,11 @@ export default function PhotoCard({
       ) : (
         <div className="photo-card-placeholder absolute inset-0" />
       )}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,transparent_40%,rgba(0,0,0,0.2)_100%)]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/62 via-black/10 to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,transparent_48%,rgba(0,0,0,0.16)_100%)]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/48 via-black/5 to-transparent" />
       {interactive ? (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition duration-300 group-hover/photo:bg-black/14 group-hover/photo:opacity-100 group-focus-visible/photo:bg-black/14 group-focus-visible/photo:opacity-100">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/28 px-3 py-1.5 text-xs font-medium text-white shadow-lg shadow-black/20 backdrop-blur-md">
+          <span className="memory-chip inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-white shadow-lg shadow-black/20 backdrop-blur-md">
             <ZoomIn size={14} />
             查看大图
           </span>
@@ -101,7 +101,7 @@ export default function PhotoCard({
       ) : null}
       <figcaption className={`absolute inset-x-0 bottom-0 min-w-0 ${captionPadding}`}>
         {showMeta && sourceLabel ? (
-          <span className="mb-2 inline-flex max-w-full rounded-full border border-white/10 bg-black/22 px-2.5 py-1 text-[11px] font-medium text-sky-50 backdrop-blur-md">
+          <span className="memory-chip mb-2 inline-flex max-w-full rounded-full px-2.5 py-1 text-[11px] font-medium">
             <span className="min-w-0 truncate">{sourceLabel}</span>
           </span>
         ) : null}
