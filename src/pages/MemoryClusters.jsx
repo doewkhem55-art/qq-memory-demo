@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Brain, Database, X } from 'lucide-react'
+import { ArrowRight, Brain, Database, ShieldCheck, X } from 'lucide-react'
 import Button from '../components/Button.jsx'
 import MemoryManagePanel from '../components/MemoryManagePanel.jsx'
 import MemoryClusterCard from '../components/MemoryClusterCard.jsx'
@@ -71,7 +71,10 @@ export default function MemoryClusters({
             <Brain size={17} />
             查看 AI 分类依据
           </Button>
-          <Button variant="secondary" onClick={() => onOpenCluster(firstClusterId)}>查看首个记忆包</Button>
+          <Button onClick={() => onOpenCluster(firstClusterId)}>
+            进入这段记忆
+            <ArrowRight size={17} />
+          </Button>
         </div>
       }
     >
@@ -80,6 +83,12 @@ export default function MemoryClusters({
         {analysisResult.uploadClassificationResults?.length
           ? ` 已有 ${analysisResult.uploadClassificationResults.length} 张本地图片参与本次整理。`
           : ' 当前未导入本地图片。'}
+      </div>
+      <div className="memory-panel mb-6 flex max-w-4xl items-start gap-3 rounded-[1.5rem] px-5 py-4 text-sm leading-6 text-slate-300">
+        <ShieldCheck size={18} className="mt-0.5 shrink-0 text-sky-100" />
+        <p>
+          这些记忆包已结合照片时间、说说评论、共同出现人物和好友互动生成。你可以查看分类依据，也可以进入记忆包继续确认内容。
+        </p>
       </div>
       {analysisResult.customPrompt ? (
         <div className="memory-panel mb-6 max-w-3xl rounded-[1.35rem] px-5 py-4">

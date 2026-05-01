@@ -3,6 +3,7 @@ import {
   BookOpenText,
   Camera,
   Check,
+  Compass,
   ImagePlus,
   MessageCircle,
   Route,
@@ -127,6 +128,12 @@ export default function ImportMemory({ initialState, onBack, onStart }) {
 
   return (
     <PageShell title="选择要整理的记忆来源" eyebrow="记忆导入" onBack={onBack}>
+      <div className="memory-panel mb-7 flex max-w-4xl items-start gap-3 rounded-[1.5rem] px-5 py-4 text-sm leading-6 text-slate-300">
+        <Compass size={18} className="mt-0.5 shrink-0 text-sky-100" />
+        <p>
+          AI 会结合相册、说说、评论和好友互动来整理记忆。你也可以选择补充本地照片，让这次整理更完整。
+        </p>
+      </div>
       <div className="grid gap-8 lg:grid-cols-[1.08fr_0.92fr]">
         <div className="space-y-8">
           <section className="grid gap-4 sm:grid-cols-2">
@@ -198,7 +205,7 @@ export default function ImportMemory({ initialState, onBack, onStart }) {
                 className="memory-input min-h-28 resize-none rounded-3xl p-4 text-sm leading-7"
               />
               <p className="mt-3 text-xs leading-5 text-slate-400">
-                选择“自定义 AI 分类指令”时，这段文字会作为主要分类依据；选择其他方式时，它会作为补充偏好。
+                不填写也可以继续整理；填写后，AI 会优先参考你的偏好生成分类结果。
               </p>
             </div>
           </GlassCard>
@@ -212,7 +219,7 @@ export default function ImportMemory({ initialState, onBack, onStart }) {
               </span>
               <div>
                 <h2 className="font-semibold text-white">记忆投放区</h2>
-                <p className="text-sm text-slate-400">把本地旧照片临时放入本次整理。</p>
+                <p className="text-sm text-slate-400">可选补充本地旧照片，不上传也能继续整理。</p>
               </div>
             </div>
             <label className="focus-ring memory-dropzone block min-h-64 cursor-pointer rounded-[1.75rem] p-8 text-center">

@@ -296,7 +296,7 @@ export default function MemoryPage({
                 这段记忆已整理完成
               </DisplayTitle>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
-                你可以先保存为仅自己可见，确认内容后再选择分享到 QQ 空间；也可以继续把最近的照片放进时光回廊，让今天成为未来可回看的记忆。
+                你可以先保存为仅自己可见，确认内容后再分享；也可以继续把近期照片放进时光回廊，让今天成为未来可回看的记忆。
               </p>
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
                 <CompletionStatus icon={Eye} text={getVisibilityCopy(currentCluster.visibility).label} active={completionFeedback.type === 'private'} />
@@ -334,7 +334,7 @@ export default function MemoryPage({
               </div>
 
               <p className="mt-4 text-xs leading-5 text-slate-400">
-                QQ 空间可以重新成为你的生活记录器：找回过去，也把新的日常保存到未来。
+                当前仅自己可见。保存后会进入我的时光回廊，确认后可分享，也可以继续归档近期照片。
               </p>
             </div>
           </div>

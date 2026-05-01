@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowRight, Camera, MessageCircle, Settings2, Sparkles, UsersRound } from 'lucide-react'
+import { ArrowRight, Camera, Eye, MessageCircle, Route, Settings2, Sparkles, UsersRound } from 'lucide-react'
 import Button from '../components/Button.jsx'
 import GlassCard from '../components/GlassCard.jsx'
 import MemoryManagePanel, { getVisibilityCopy } from '../components/MemoryManagePanel.jsx'
@@ -91,6 +91,18 @@ export default function MemoryDetail({
         </div>
       }
     >
+      <div className="memory-panel mb-7 flex flex-col gap-4 rounded-[1.5rem] px-5 py-4 text-sm leading-6 text-slate-300 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-3">
+          <Route size={18} className="mt-0.5 shrink-0 text-sky-100" />
+          <p>
+            AI 已将照片、时间线、说说评论和好友互动串联为这段记忆。确认内容后，可生成一页可保存、可分享的回忆页。
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2 rounded-full border border-sky-100/14 bg-sky-200/[0.07] px-3 py-2 text-xs text-sky-100">
+          <Eye size={14} />
+          点击照片查看大图
+        </div>
+      </div>
       <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-6">
           <GlassCard className="rounded-[2rem] p-5 sm:p-6">
