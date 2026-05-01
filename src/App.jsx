@@ -253,17 +253,20 @@ export default function App() {
             const uploadCount = (baseResult.uploadClassificationResults || []).filter(
               (item) => item.assignedClusterId === clusterId && getPhotoIdentity(item) !== photoId,
             ).length
-            const baseCount = cluster.sourcePhotoCount || cluster.rawPhotoCount || cluster.photoCount || 0
-            const nextCount = isUploadedPhoto ? baseCount : Math.max(0, baseCount - 1)
+            const baseCount =
+              cluster.sourcePhotoCount ??
+              cluster.rawPhotoCount ??
+              Math.max(0, (cluster.photoCount || 0) - (cluster.localUploadCount || 0))
+            const nextSourceCount = isUploadedPhoto ? baseCount : Math.max(0, baseCount - 1)
             return {
               ...cluster,
               removedPhotoIds,
               relatedPhotoIds,
               previewPhotos,
               coverPhotoId: cluster.coverPhotoId === photoId ? undefined : cluster.coverPhotoId,
-              rawPhotoCount: nextCount,
-              sourcePhotoCount: nextCount,
-              photoCount: nextCount + uploadCount,
+              rawPhotoCount: nextSourceCount,
+              sourcePhotoCount: nextSourceCount,
+              photoCount: nextSourceCount + uploadCount,
               localUploadCount: uploadCount,
               updatedAt: new Date().toISOString(),
             }

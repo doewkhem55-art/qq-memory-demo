@@ -1,4 +1,5 @@
-import { Eye, Send, ShieldCheck, Trash2, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CheckCircle2, Eye, Send, ShieldCheck, Trash2, X } from 'lucide-react'
 import Button from './Button.jsx'
 import PhotoCard from './PhotoCard.jsx'
 
@@ -36,6 +37,15 @@ export default function MemoryManagePanel({
   onUpdateVisibility,
   onDeleteCluster,
 }) {
+  const [saveMessage, setSaveMessage] = useState('')
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+
+  useEffect(() => {
+    if (!saveMessage) return undefined
+    const timer = window.setTimeout(() => setSaveMessage(''), 1800)
+    return () => window.clearTimeout(timer)
+  }, [saveMessage])
+
   if (!open || !cluster) return null
 
   const activeVisibility = getVisibilityCopy(cluster.visibility)
@@ -43,10 +53,19 @@ export default function MemoryManagePanel({
   const titleDraft = cluster.title || ''
   const summaryDraft = cluster.summary || ''
 
+  const syncUpdate = (updates) => {
+    onUpdateCluster?.(cluster.id, updates)
+    setSaveMessage('修改已同步')
+  }
+
+  const syncVisibility = (visibility) => {
+    onUpdateVisibility?.(cluster.id, visibility)
+    setSaveMessage('修改已同步')
+  }
+
   const handleDelete = () => {
-    const confirmed = window.confirm('确认隐藏这个记忆包？只会从当前 Demo 状态中移除，不会删除原始照片。')
-    if (!confirmed) return
     onDeleteCluster?.(cluster.id)
+    setDeleteConfirmOpen(false)
     onClose?.()
   }
 
@@ -57,6 +76,14 @@ export default function MemoryManagePanel({
           <div>
             <p className="mb-2 text-sm text-sky-100">管理记忆包</p>
             <h2 className="text-2xl font-semibold">AI 已为你整理完成，你可以继续调整这段记忆。</h2>
+            <div className="mt-3 h-6">
+              {saveMessage ? (
+                <span className="inline-flex items-center gap-2 rounded-full border border-sky-200/15 bg-sky-200/[0.08] px-3 py-1 text-xs text-sky-100">
+                  <CheckCircle2 size={14} />
+                  {saveMessage}
+                </span>
+              ) : null}
+            </div>
           </div>
           <button
             type="button"
@@ -86,7 +113,7 @@ export default function MemoryManagePanel({
               />
             </div>
             <p className="mt-3 text-xs leading-5 text-slate-400">
-              设为封面后，所有回忆页将同步使用这张照片。照片可在详情页照片墙中设为封面或移除。
+              可在照片墙中选择其他照片设为封面。
             </p>
           </section>
 
@@ -94,8 +121,8 @@ export default function MemoryManagePanel({
             <span className="text-sm font-semibold text-sky-100">记忆包标题</span>
             <input
               value={titleDraft}
-              onChange={(event) => onUpdateCluster?.(cluster.id, { title: event.target.value })}
-              className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-sky-200/40"
+              onChange={(event) => syncUpdate({ title: event.target.value })}
+              className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm text-white outline-none focus:border-sky-200/40"
             />
           </label>
 
@@ -103,8 +130,8 @@ export default function MemoryManagePanel({
             <span className="text-sm font-semibold text-sky-100">记忆包描述</span>
             <textarea
               value={summaryDraft}
-              onChange={(event) => onUpdateCluster?.(cluster.id, { summary: event.target.value })}
-              className="mt-3 min-h-32 w-full resize-none rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm leading-7 text-white outline-none placeholder:text-slate-500 focus:border-sky-200/40"
+              onChange={(event) => syncUpdate({ summary: event.target.value })}
+              className="mt-3 min-h-32 w-full resize-none rounded-2xl border border-white/10 bg-slate-950/55 px-4 py-3 text-sm leading-7 text-white outline-none focus:border-sky-200/40"
             />
           </label>
 
@@ -122,7 +149,7 @@ export default function MemoryManagePanel({
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => onUpdateVisibility?.(cluster.id, option.value)}
+                    onClick={() => syncVisibility(option.value)}
                     className={`min-h-24 rounded-2xl border p-3 text-left text-sm transition ${
                       selected
                         ? 'border-sky-200/[0.42] bg-sky-200/[0.13] text-sky-50'
@@ -137,18 +164,45 @@ export default function MemoryManagePanel({
             </div>
           </section>
 
-          <section className="rounded-[1.35rem] border border-rose-200/15 bg-rose-300/[0.055] p-4">
-            <h3 className="mb-2 text-sm font-semibold text-rose-100">隐藏记忆包</h3>
+          <section className="rounded-[1.35rem] border border-white/[0.08] bg-white/[0.035] p-4">
+            <h3 className="mb-2 text-sm font-semibold text-slate-100">删除 / 隐藏记忆包</h3>
             <p className="text-sm leading-6 text-slate-300">
-              从列表中移除这段记忆，不会删除 public/demo-photos 中的素材，也不会删除你的原始照片。
+              从当前整理结果中移除这段记忆，不会删除原始照片或本地素材。
             </p>
-            <Button variant="secondary" onClick={handleDelete} className="mt-4 border-rose-200/20 bg-rose-300/[0.1] text-rose-50">
+            <Button
+              variant="secondary"
+              onClick={() => setDeleteConfirmOpen(true)}
+              className="mt-4 border-white/10 bg-white/[0.055] text-slate-100 hover:border-rose-200/25 hover:bg-rose-300/[0.1]"
+            >
               <Trash2 size={16} />
-              删除 / 隐藏记忆包
+              删除记忆包
             </Button>
           </section>
         </div>
       </aside>
+
+      {deleteConfirmOpen ? (
+        <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/62 px-5 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[1.5rem] border border-white/10 bg-slate-950/95 p-6 text-white shadow-2xl shadow-black/45">
+            <h3 className="text-xl font-semibold">确认删除这个记忆包吗？</h3>
+            <p className="mt-3 text-sm leading-7 text-slate-300">
+              这只会从当前整理结果中移除，不会删除原始照片或本地素材。删除后你可以重新整理生成新的记忆包。
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => setDeleteConfirmOpen(false)}>
+                取消
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleDelete}
+                className="border-rose-200/20 bg-rose-300/[0.1] text-rose-50 hover:bg-rose-300/[0.16]"
+              >
+                删除记忆包
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

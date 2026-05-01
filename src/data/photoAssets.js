@@ -403,11 +403,11 @@ export function resolveClusterPhotoMeta({
   const displayedPhotoCount = unique.length
   const sourcePhotoCount = cluster.sourcePhotoCount || cluster.rawPhotoCount || cluster.photoCount || 0
   const countLabel =
-    displayedPhotoCount > 0 && sourcePhotoCount > displayedPhotoCount
-      ? `检索 ${sourcePhotoCount} 张 · 预览 ${displayedPhotoCount} 张`
+    sourcePhotoCount > 0
+      ? `${sourcePhotoCount} \u5f20\u7167\u7247`
       : displayedPhotoCount > 0
-        ? `预览 ${displayedPhotoCount} 张`
-        : '暂无可预览照片'
+        ? `${displayedPhotoCount} \u5f20\u7167\u7247`
+        : '\u6682\u65e0\u53ef\u9884\u89c8\u7167\u7247'
 
   return {
     photos,

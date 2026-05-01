@@ -2,14 +2,10 @@ import { useState } from 'react'
 import {
   ArrowRight,
   Camera,
-  Check,
   MessageCircle,
-  Pencil,
   Settings2,
   ShieldCheck,
-  Trash2,
   UsersRound,
-  X,
 } from 'lucide-react'
 import { sourceLabels } from '../data/mockData.js'
 import { resolveClusterPhotoMeta } from '../data/photoAssets.js'
@@ -23,30 +19,12 @@ export default function MemoryClusterCard({
   featured = false,
   uploadedPhotos = [],
   onOpen,
-  onRename,
-  onDelete,
   onManage,
 }) {
-  const [editing, setEditing] = useState(false)
-  const [draftTitle, setDraftTitle] = useState(cluster.title)
   const [lightboxIndex, setLightboxIndex] = useState(null)
-  const canManage = Boolean(onRename || onDelete || onManage)
   const photoMeta = resolveClusterPhotoMeta({ cluster, uploadedPhotos, minCount: 3, maxCount: 4 })
   const previews = photoMeta.photos
   const localUploadLabel = cluster.localUploadCount ? `本地 ${cluster.localUploadCount}` : null
-
-  const handleRename = () => {
-    const nextTitle = draftTitle.trim()
-    if (!nextTitle) return
-    onRename(cluster.id, nextTitle)
-    setEditing(false)
-  }
-
-  const handleDelete = () => {
-    if (window.confirm('确认隐藏这个记忆包？本地图片不会被删除，只会从当前 Demo 状态中移除。')) {
-      onDelete(cluster.id)
-    }
-  }
 
   return (
     <GlassCard className={`group rounded-[1.6rem] p-5 transition hover:-translate-y-1 hover:border-sky-200/25 hover:bg-white/[0.068] ${featured ? 'md:col-span-2' : ''}`} as="article">
@@ -98,42 +76,18 @@ export default function MemoryClusterCard({
 
       <div>
         <div className="flex items-start justify-between gap-3">
-          {editing ? (
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              <input
-                value={draftTitle}
-                onChange={(event) => setDraftTitle(event.target.value)}
-                className="min-w-0 flex-1 rounded-2xl border border-sky-200/30 bg-slate-950/50 px-3 py-2 text-lg font-semibold text-white outline-none focus:border-sky-100/60"
-                autoFocus
-              />
-              <button onClick={handleRename} className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-200/15 text-sky-100 transition hover:bg-sky-200/25" aria-label="保存相册名称">
-                <Check size={16} />
-              </button>
-              <button onClick={() => { setDraftTitle(cluster.title); setEditing(false) }} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-slate-200 transition hover:bg-white/[0.12]" aria-label="取消重命名">
-                <X size={16} />
-              </button>
-            </div>
-          ) : (
-            <h2 className="min-w-0 text-2xl font-semibold tracking-normal text-white">{cluster.title}</h2>
-          )}
-          {canManage && !editing ? (
-            <div className="flex shrink-0 items-center gap-2">
-              {onManage ? (
-                <button onClick={() => onManage(cluster.id)} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.055] text-slate-200 transition hover:bg-white/[0.12]" aria-label="管理记忆包">
-                  <Settings2 size={15} />
-                </button>
-              ) : null}
-              {onRename ? (
-                <button onClick={() => { setDraftTitle(cluster.title); setEditing(true) }} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.055] text-slate-200 transition hover:bg-white/[0.12]" aria-label="重命名相册">
-                <Pencil size={15} />
-              </button>
-              ) : null}
-              {onDelete ? (
-                <button onClick={handleDelete} className="flex h-9 w-9 items-center justify-center rounded-full border border-rose-200/15 bg-rose-300/[0.08] text-rose-100 transition hover:bg-rose-300/[0.16]" aria-label="删除相册">
-                <Trash2 size={15} />
-              </button>
-              ) : null}
-            </div>
+          <h2 className="min-w-0 text-2xl font-semibold tracking-normal text-white">{cluster.title}</h2>
+          {onManage ? (
+            <button
+              type="button"
+              onClick={() => onManage(cluster.id)}
+              title="管理记忆包"
+              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-white/10 bg-black/14 px-3 text-xs font-medium text-slate-100 opacity-0 backdrop-blur-md transition hover:bg-white/[0.12] group-hover:opacity-100 group-focus-within:opacity-100"
+              aria-label="管理记忆包"
+            >
+              <Settings2 size={15} />
+              管理
+            </button>
           ) : null}
         </div>
         <p className="mt-3 text-sm leading-7 text-slate-300">{cluster.summary}</p>
@@ -204,42 +158,6 @@ function CoverTile({ item, title, large = false, onPreview }) {
   const label = shortPhotoTitle(item, title)
   const src = item?.src || item?.previewUrl || item?.dataUrl || item?.objectUrl
 
-  if (large) {
-    if (item?.isUploaded && src) {
-      return (
-        <PhotoCard
-          title={label}
-          src={src}
-          fallbackSrc={item?.fallbackSrc}
-          fallbackSources={item?.fallbackSources}
-          source={item?.source}
-          isPlaceholder={item?.isPlaceholder}
-          showMeta={false}
-          showDescription={false}
-          className="absolute inset-0 rounded-[1.35rem] shadow-none"
-          aspect=""
-          onPreview={onPreview}
-        />
-      )
-    }
-
-    return (
-      <PhotoCard
-        title={label}
-        src={src}
-        fallbackSrc={item?.fallbackSrc}
-        fallbackSources={item?.fallbackSources}
-        source={item?.source}
-        isPlaceholder={item?.isPlaceholder}
-        showMeta={false}
-        showDescription={false}
-        className="absolute inset-0 rounded-[1.35rem] shadow-none"
-        aspect=""
-        onPreview={onPreview}
-      />
-    )
-  }
-
   return (
     <PhotoCard
       title={label}
@@ -248,10 +166,10 @@ function CoverTile({ item, title, large = false, onPreview }) {
       fallbackSources={item?.fallbackSources}
       source={item?.source}
       isPlaceholder={item?.isPlaceholder}
-      compact
+      compact={!large}
       showMeta={false}
       showDescription={false}
-      className="h-16 w-20 rounded-2xl shadow-lg shadow-black/24"
+      className={large ? 'absolute inset-0 rounded-[1.35rem] shadow-none' : 'h-16 w-20 rounded-2xl shadow-lg shadow-black/24'}
       aspect=""
       onPreview={onPreview}
     />

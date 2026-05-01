@@ -56,3 +56,17 @@
 - 不要把默认相册管理能力重新限制为 `isUserArchive`。
 - 不要破坏 `coverPhotoId`、`removedPhotoIds`、上传图优先级和 `PhotoLightbox`。
 - 后续视觉精修时应保留管理入口和照片 hover 操作。
+## 3C polish 保存记录
+
+本次只做 3C 收尾优化与稳定性验证。
+
+实现要点：
+- `MemoryClusterCard` 卡片管理入口收敛为一个 hover 出现的“管理”按钮，编辑和删除入口统一进入 `MemoryManagePanel`。
+- `MemoryManagePanel` 增加产品化删除确认弹窗，替代浏览器 `window.confirm`。
+- 管理面板输入和可见性切换仍为自动同步，并增加“修改已同步”轻反馈。
+- `resolveClusterPhotoMeta` 的数量文案改为稳定的“X 张照片”，减少卡片统计区域截断风险。
+- `removePhotoFromCluster` 调整上传图移除计数逻辑，避免新归档相册上传图数量重复叠加。
+
+验证：
+- `npm run build` 已通过。
+- 3B curated 图片、上传图片优先级、PhotoLightbox 和 recent 持续归档入口未改动核心逻辑。
