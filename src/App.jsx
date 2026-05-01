@@ -115,7 +115,6 @@ export default function App() {
       aiConfidence: 86,
       dataSources: ['local_album', 'qq_album'],
       localUploadCount: photos.length,
-      photoAssets: getThemePhotoAssets('recent'),
       previewPhotos: photos.map((photo, index) => ({
         id: `recent-preview-${clusterId}-${index}`,
         title: photo.fileName,

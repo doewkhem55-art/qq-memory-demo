@@ -9,6 +9,7 @@ export default function PhotoCard({
   source,
   isPlaceholder = false,
   fallbackSrc,
+  fallbackSources = [],
   compact = false,
   showMeta = true,
   showDescription = true,
@@ -18,14 +19,19 @@ export default function PhotoCard({
   onPreview,
 }) {
   const [failed, setFailed] = useState(false)
-  const [usingFallback, setUsingFallback] = useState(false)
+  const [fallbackIndex, setFallbackIndex] = useState(-1)
   const imageSrc = typeof src === 'string' ? src.trim() : src
   const fallbackImageSrc = typeof fallbackSrc === 'string' ? fallbackSrc.trim() : fallbackSrc
-  const activeImageSrc = usingFallback ? fallbackImageSrc : imageSrc
+  const fallbackQueue = [
+    fallbackImageSrc,
+    ...fallbackSources.map((item) => (typeof item === 'string' ? item.trim() : item)),
+  ].filter(Boolean)
+  const uniqueFallbackQueue = Array.from(new Set(fallbackQueue))
+  const activeImageSrc = fallbackIndex >= 0 ? uniqueFallbackQueue[fallbackIndex] : imageSrc
   useEffect(() => {
     setFailed(false)
-    setUsingFallback(false)
-  }, [imageSrc, fallbackImageSrc])
+    setFallbackIndex(-1)
+  }, [imageSrc, fallbackImageSrc, fallbackSources])
 
   const showImage = activeImageSrc && !failed
   const interactive = Boolean(onPreview)
@@ -33,6 +39,8 @@ export default function PhotoCard({
     badge ||
     (source === 'uploaded'
       ? '本地照片'
+      : source === 'curated'
+        ? '精选相册'
       : source === 'demo'
         ? '相册片段'
         : isPlaceholder
@@ -70,8 +78,9 @@ export default function PhotoCard({
           className={`absolute inset-0 h-full w-full object-cover transition duration-500 ${interactive ? 'group-hover/photo:scale-[1.035]' : ''} ${imageClassName}`}
           onLoad={() => setFailed(false)}
           onError={() => {
-            if (!usingFallback && fallbackImageSrc) {
-              setUsingFallback(true)
+            const nextFallbackIndex = fallbackIndex + 1
+            if (uniqueFallbackQueue[nextFallbackIndex]) {
+              setFallbackIndex(nextFallbackIndex)
               return
             }
             setFailed(true)

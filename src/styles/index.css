@@ -117,6 +117,10 @@ html {
     inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
+.photo-card.absolute {
+  position: absolute;
+}
+
 .photo-card-placeholder {
   background-image:
     radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.58), transparent 20%),

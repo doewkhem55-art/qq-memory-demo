@@ -50,9 +50,9 @@ export default function MemoryClusterCard({
     <GlassCard className={`group rounded-[1.6rem] p-5 transition hover:-translate-y-1 hover:border-sky-200/25 hover:bg-white/[0.068] ${featured ? 'md:col-span-2' : ''}`} as="article">
       <div className="relative mb-4 h-48 overflow-hidden rounded-[1.35rem] shadow-2xl shadow-sky-950/24">
         <CoverTile item={previews[0]} title={cluster.title} large onPreview={() => setLightboxIndex(0)} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/64 via-black/10 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/42 via-black/5 to-transparent" />
         <div className="absolute left-3 top-3 flex max-w-[70%] flex-wrap gap-2">
-          <span className="max-w-full truncate rounded-full border border-white/12 bg-black/20 px-3 py-1 text-[11px] font-medium text-sky-50 backdrop-blur-md">
+          <span className="max-w-full truncate rounded-full border border-white/12 bg-black/16 px-3 py-1 text-[11px] font-medium text-sky-50 backdrop-blur-md">
             {previews[0]?.isUploaded ? '本地上传' : cluster.highlight || '记忆相册'}
           </span>
           {localUploadLabel ? (
@@ -62,11 +62,11 @@ export default function MemoryClusterCard({
           ) : null}
         </div>
         <div className="absolute inset-x-3 bottom-3 grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="min-w-0 rounded-2xl border border-white/10 bg-black/16 px-3 py-2 backdrop-blur-md">
+          <div className="min-w-0 rounded-2xl border border-white/10 bg-black/12 px-3 py-1.5 backdrop-blur-md">
             <div className="truncate text-sm font-semibold text-white">
               {shortPhotoTitle(previews[0], cluster.title)}
             </div>
-            <div className="mt-1 truncate text-[11px] text-white/66">
+            <div className="mt-0.5 text-[11px] leading-4 text-white/68">
               {photoMeta.countLabel}
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function MemoryClusterCard({
         <p className="mt-3 text-sm leading-7 text-slate-300">{cluster.summary}</p>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-300 sm:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-300 sm:grid-cols-2 xl:grid-cols-4">
         <Metric icon={Camera} label={photoMeta.countLabel} />
         <Metric icon={MessageCircle} label={`${cluster.postCount} 条说说`} />
         <Metric icon={MessageCircle} label={`${cluster.commentCount} 条评论`} />
@@ -200,6 +200,7 @@ function CoverTile({ item, title, large = false, onPreview }) {
           title={label}
           src={src}
           fallbackSrc={item?.fallbackSrc}
+          fallbackSources={item?.fallbackSources}
           source={item?.source}
           isPlaceholder={item?.isPlaceholder}
           showMeta={false}
@@ -216,6 +217,7 @@ function CoverTile({ item, title, large = false, onPreview }) {
         title={label}
         src={src}
         fallbackSrc={item?.fallbackSrc}
+        fallbackSources={item?.fallbackSources}
         source={item?.source}
         isPlaceholder={item?.isPlaceholder}
         showMeta={false}
@@ -232,6 +234,7 @@ function CoverTile({ item, title, large = false, onPreview }) {
       title={label}
       src={src}
       fallbackSrc={item?.fallbackSrc}
+      fallbackSources={item?.fallbackSources}
       source={item?.source}
       isPlaceholder={item?.isPlaceholder}
       compact
@@ -248,7 +251,7 @@ function Metric({ icon: Icon, label }) {
   return (
     <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.045] px-3 py-2">
       <Icon size={15} className="shrink-0 text-sky-200" />
-      <span className="min-w-0 truncate">{label}</span>
+      <span className="min-w-0 text-[13px] leading-5">{label}</span>
     </div>
   )
 }

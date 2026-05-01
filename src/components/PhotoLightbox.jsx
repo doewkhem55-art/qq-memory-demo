@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 function sourceLabel(photo = {}) {
   if (photo.isUploaded || photo.source === 'uploaded') return '本地上传'
+  if (photo.source === 'curated') return '精选相册'
   if (photo.source === 'demo') return 'Demo 素材'
   if (photo.source === 'preview') return '相册预览'
   return 'QQ 空间旧相册'
@@ -16,14 +17,18 @@ export default function PhotoLightbox({
 }) {
   const safePhotos = useMemo(() => photos.filter((photo) => photo?.src || photo?.fallbackSrc), [photos])
   const [activeIndex, setActiveIndex] = useState(initialIndex)
-  const [usingFallback, setUsingFallback] = useState(false)
+  const [fallbackIndex, setFallbackIndex] = useState(-1)
   const [failed, setFailed] = useState(false)
 
   const hasMultiple = safePhotos.length > 1
   const activePhoto = safePhotos[activeIndex] || safePhotos[0]
   const primarySrc = activePhoto?.src || activePhoto?.previewUrl || activePhoto?.dataUrl || activePhoto?.objectUrl
-  const fallbackSrc = activePhoto?.fallbackSrc
-  const activeSrc = usingFallback ? fallbackSrc : primarySrc
+  const fallbackQueue = [
+    activePhoto?.fallbackSrc,
+    ...(activePhoto?.fallbackSources || []),
+  ].filter(Boolean)
+  const uniqueFallbackQueue = Array.from(new Set(fallbackQueue))
+  const activeSrc = fallbackIndex >= 0 ? uniqueFallbackQueue[fallbackIndex] : primarySrc
 
   useEffect(() => {
     const nextIndex = Math.min(Math.max(initialIndex, 0), Math.max(safePhotos.length - 1, 0))
@@ -31,9 +36,9 @@ export default function PhotoLightbox({
   }, [initialIndex, safePhotos.length])
 
   useEffect(() => {
-    setUsingFallback(false)
+    setFallbackIndex(-1)
     setFailed(false)
-  }, [primarySrc, fallbackSrc])
+  }, [primarySrc, activePhoto])
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
@@ -123,8 +128,9 @@ export default function PhotoLightbox({
               alt={activePhoto.title || contextTitle || '记忆照片'}
               className="max-h-full max-w-full rounded-[1.35rem] object-contain shadow-2xl shadow-black/45"
               onError={() => {
-                if (!usingFallback && fallbackSrc) {
-                  setUsingFallback(true)
+                const nextFallbackIndex = fallbackIndex + 1
+                if (uniqueFallbackQueue[nextFallbackIndex]) {
+                  setFallbackIndex(nextFallbackIndex)
                   return
                 }
                 setFailed(true)

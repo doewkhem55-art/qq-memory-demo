@@ -11,6 +11,7 @@ export default function PhotoGrid({ photos = [], className = '', limit = 6, onPh
           title={photo.title}
           src={photo.src}
           fallbackSrc={photo.fallbackSrc}
+          fallbackSources={photo.fallbackSources}
           badge={photo.isUploaded ? '本地上传' : undefined}
           description={photo.description}
           source={photo.source}

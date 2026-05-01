@@ -75,6 +75,7 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
                 title={currentCluster.title}
                 src={displayPhotos[0]?.src}
                 fallbackSrc={displayPhotos[0]?.fallbackSrc}
+                fallbackSources={displayPhotos[0]?.fallbackSources}
                 description={displayPhotos[0]?.description}
                 source={displayPhotos[0]?.source}
                 isPlaceholder={displayPhotos[0]?.isPlaceholder}
