@@ -9,7 +9,7 @@ import PrivacyNotice from '../components/PrivacyNotice.jsx'
 import Tag from '../components/Tag.jsx'
 import Timeline from '../components/Timeline.jsx'
 import { comments, photos, posts, repairSuggestions, timelineEvents } from '../data/mockData.js'
-import { resolveClusterPhotos } from '../data/photoAssets.js'
+import { resolveClusterPhotoMeta } from '../data/photoAssets.js'
 import { generateMemoryPage, repairMissingMemories } from '../services/aiMemoryService.js'
 
 export default function MemoryDetail({ cluster, analysisResult, onBack, onGenerated }) {
@@ -34,12 +34,13 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
   const uploadedPhotos = (analysisResult.uploadClassificationResults || []).filter(
     (item) => item.assignedClusterId === currentCluster.id,
   )
-  const displayPhotos = resolveClusterPhotos({
+  const photoMeta = resolveClusterPhotoMeta({
     cluster: currentCluster,
     uploadedPhotos,
     minCount: 3,
     maxCount: 6,
   })
+  const displayPhotos = photoMeta.photos
   const repair = repairSuggestions.find((item) => item.clusterId === currentCluster.id)
   const events = timelineEvents[currentCluster.id] || [
     { id: `${currentCluster.id}-event`, date: currentCluster.timeRange, title: currentCluster.title, description: currentCluster.summary },
@@ -132,6 +133,7 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
               <Camera size={19} className="text-sky-200" />
               照片墙
             </h2>
+            <p className="mb-4 text-sm text-slate-400">{photoMeta.countLabel}</p>
             <PhotoGrid photos={displayPhotos} />
           </GlassCard>
 

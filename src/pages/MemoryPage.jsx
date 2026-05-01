@@ -8,7 +8,7 @@ import PhotoCard from '../components/PhotoCard.jsx'
 import PhotoGrid from '../components/PhotoGrid.jsx'
 import PrivacyNotice from '../components/PrivacyNotice.jsx'
 import { classificationModeLabels, comments, photos, posts } from '../data/mockData.js'
-import { resolveClusterPhotos } from '../data/photoAssets.js'
+import { resolveClusterPhotoMeta } from '../data/photoAssets.js'
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve) => {
@@ -58,12 +58,13 @@ export default function MemoryPage({
   const uploadedPhotos = (analysisResult.uploadClassificationResults || []).filter(
     (item) => item.assignedClusterId === currentCluster.id,
   )
-  const displayPhotos = resolveClusterPhotos({
+  const photoMeta = resolveClusterPhotoMeta({
     cluster: currentCluster,
     uploadedPhotos,
     minCount: 3,
     maxCount: 6,
   })
+  const displayPhotos = photoMeta.photos
   const featuredPost =
     currentCluster.relatedPostsData?.[0] ||
     posts.find((post) => post.id === page.featuredPostId)
@@ -119,6 +120,7 @@ export default function MemoryPage({
                 <Camera size={19} className="text-sky-200" />
                 精选照片
               </h3>
+              <p className="mb-4 text-sm text-slate-400">{photoMeta.countLabel}</p>
               <PhotoGrid photos={displayPhotos} />
             </section>
 
@@ -208,7 +210,7 @@ export default function MemoryPage({
           archiveResult={archiveResult}
           archiveRenameDraft={archiveRenameDraft}
           onFiles={(files) => {
-            setRecentFiles(files)
+            setRecentFiles((current) => [...current, ...files])
             setArchiveResult(null)
           }}
           onMode={setArchiveMode}
@@ -282,13 +284,15 @@ function NewArchivePanel({
   ]
 
   const handleFiles = async (event) => {
+    const baseIndex = recentFiles.length
     const files = await Promise.all(Array.from(event.target.files || []).map(async (file, index) => {
       const objectUrl = URL.createObjectURL(file)
       const dataUrl = await readFileAsDataUrl(file)
       const previewUrl = dataUrl || objectUrl
+      const uploadIndex = baseIndex + index
       return {
-        id: `${file.name}-${file.lastModified}-${file.size}`,
-        uploadIndex: index,
+        id: `${file.name}-${file.lastModified}-${file.size}-${uploadIndex}`,
+        uploadIndex,
         title: file.name,
         fileName: file.name,
         name: file.name,
@@ -303,6 +307,7 @@ function NewArchivePanel({
       }
     }))
     onFiles(files)
+    event.target.value = ''
   }
 
   return (

@@ -604,9 +604,9 @@ const familyFriendsClusters = [
 ]
 
 const assignmentByMode = {
-  life_stage: ['graduation-2018', 'college-start'],
-  relation: ['relation-family', 'relation-highschool', 'relation-college', 'relation-close-friends'],
-  scene: ['scene-graduation', 'scene-travel', 'scene-dinner', 'scene-military'],
+  life_stage: ['graduation-2018', 'college-start', 'military-training', 'class-dinner', 'family-trip', 'close-friends'],
+  relation: ['relation-family', 'relation-highschool', 'relation-college', 'relation-close-friends', 'relation-travel-partners', 'relation-most-seen'],
+  scene: ['scene-graduation', 'scene-travel', 'scene-dinner', 'scene-military', 'scene-birthday', 'scene-campus'],
 }
 
 function hasSelfIntent(prompt = '') {
@@ -740,12 +740,17 @@ function classifyUploadedFiles(uploadedFiles = [], classificationMode = 'life_st
     promptMatchedId && clusters.some((cluster) => cluster.id === promptMatchedId)
       ? [promptMatchedId, ...basePreferredIds.filter((id) => id !== promptMatchedId)]
       : basePreferredIds
+  const clusterIds = clusters.map((cluster) => cluster.id)
+  const assignmentPool = uniqueList([
+    ...preferredClusterIds.filter((id) => clusterIds.includes(id)),
+    ...clusterIds,
+  ])
 
   // TODO: replace mock file classification with real multimodal AI image recognition API.
   // The future API should receive browser-selected file metadata or uploaded asset ids,
   // then return cluster assignment, confidence, tags, and explainable classification reasons.
   return uploadedFiles.map((file, index) => {
-    const assignedClusterId = preferredClusterIds[index % preferredClusterIds.length]
+    const assignedClusterId = assignmentPool[index % assignmentPool.length] || clusters[0]?.id
     const cluster = findClusterIn(clusters, assignedClusterId)
     return {
       id: `upload-result-${file.id || index}`,
@@ -779,7 +784,9 @@ function withUploadedCounts(clusters, uploadClassificationResults) {
     return {
       ...cluster,
       localUploadCount: uploadCount,
-      photoCount: cluster.photoCount + uploadCount,
+      rawPhotoCount: cluster.rawPhotoCount || cluster.sourcePhotoCount || cluster.photoCount,
+      sourcePhotoCount: cluster.sourcePhotoCount || cluster.rawPhotoCount || cluster.photoCount,
+      photoCount: cluster.photoCount,
       classificationBasis: uploadCount
         ? uniqueList([...cluster.classificationBasis, '本地照片补全'])
         : cluster.classificationBasis,

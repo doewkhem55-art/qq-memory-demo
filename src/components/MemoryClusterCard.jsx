@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { sourceLabels } from '../data/mockData.js'
-import { resolveClusterPhotos } from '../data/photoAssets.js'
+import { resolveClusterPhotoMeta } from '../data/photoAssets.js'
 import GlassCard from './GlassCard.jsx'
 import PhotoCard from './PhotoCard.jsx'
 import Tag from './Tag.jsx'
@@ -27,7 +27,8 @@ export default function MemoryClusterCard({
   const [editing, setEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState(cluster.title)
   const canManage = cluster.isUserArchive && onRename && onDelete
-  const previews = resolveClusterPhotos({ cluster, uploadedPhotos, minCount: 3, maxCount: 4 })
+  const photoMeta = resolveClusterPhotoMeta({ cluster, uploadedPhotos, minCount: 3, maxCount: 4 })
+  const previews = photoMeta.photos
 
   const handleRename = () => {
     const nextTitle = draftTitle.trim()
@@ -114,7 +115,7 @@ export default function MemoryClusterCard({
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-300 sm:grid-cols-4">
-        <Metric icon={Camera} label={`${cluster.photoCount} 张照片`} />
+        <Metric icon={Camera} label={photoMeta.countLabel} />
         <Metric icon={MessageCircle} label={`${cluster.postCount} 条说说`} />
         <Metric icon={MessageCircle} label={`${cluster.commentCount} 条评论`} />
         <Metric icon={UsersRound} label={`${cluster.friendCount} 位好友`} />

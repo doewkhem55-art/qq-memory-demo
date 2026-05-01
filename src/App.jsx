@@ -6,7 +6,7 @@ import MemoryClusters from './pages/MemoryClusters.jsx'
 import MemoryDetail from './pages/MemoryDetail.jsx'
 import MemoryPage from './pages/MemoryPage.jsx'
 import { mockAnalysisResult } from './data/mockData.js'
-import { getThemePhotoAssets } from './data/photoAssets.js'
+import { getThemePhotoAssets, mergeUploadedPhotoPreviews } from './data/photoAssets.js'
 
 const initialDemoState = {
   selectedSources: ['qq_album', 'qq_zone', 'friends', 'local_album'],
@@ -18,43 +18,6 @@ const initialDemoState = {
   analysisResult: null,
   activeClusterId: 'graduation-2018',
   generatedPage: null,
-}
-
-function photoUrlOf(photo = {}) {
-  return photo.src || photo.previewUrl || photo.dataUrl || photo.objectUrl || photo.url || ''
-}
-
-function mergeUploadPreviewFields(uploadResults = [], uploadedPreviews = []) {
-  return uploadResults.map((result, index) => {
-    const preview =
-      uploadedPreviews.find(
-        (item) =>
-          item.id === result.id ||
-          item.id === result.originalUploadId ||
-          item.uploadIndex === result.uploadIndex ||
-          item.fileName === result.fileName ||
-          item.name === result.fileName,
-      ) ||
-      uploadedPreviews[index] ||
-      {}
-    const src = photoUrlOf(result) || photoUrlOf(preview)
-
-    return {
-      ...preview,
-      ...result,
-      title: result.title || result.fileName || preview.title || preview.fileName || preview.name,
-      fileName: result.fileName || preview.fileName || preview.name,
-      originalUploadId: result.originalUploadId || preview.id,
-      uploadIndex: result.uploadIndex ?? preview.uploadIndex ?? index,
-      src,
-      previewUrl: result.previewUrl || preview.previewUrl || src,
-      dataUrl: result.dataUrl || preview.dataUrl,
-      objectUrl: result.objectUrl || preview.objectUrl,
-      source: 'uploaded',
-      isUploaded: true,
-      isPlaceholder: false,
-    }
-  })
 }
 
 export default function App() {
@@ -285,7 +248,7 @@ export default function App() {
             ...current,
             analysisResult: {
               ...result,
-              uploadClassificationResults: mergeUploadPreviewFields(
+              uploadClassificationResults: mergeUploadedPhotoPreviews(
                 result.uploadClassificationResults || [],
                 current.uploadedPhotoPreviews || current.uploadedFiles || [],
               ),

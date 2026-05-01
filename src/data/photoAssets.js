@@ -163,7 +163,60 @@ export function normalizeUploadedPhotos(uploadedPhotos = []) {
   })
 }
 
+export function mergeUploadedPhotoPreviews(uploadResults = [], uploadedPreviews = []) {
+  const byName = new Map(
+    uploadedPreviews.map((photo) => [photo.fileName || photo.name || photo.title, photo]),
+  )
+  const byId = new Map(uploadedPreviews.map((photo) => [photo.id, photo]))
+  const byIndex = new Map(
+    uploadedPreviews.map((photo, index) => [photo.uploadIndex ?? index, photo]),
+  )
+
+  return uploadResults.map((item, index) => {
+    const preview =
+      byId.get(item.originalUploadId || item.id) ||
+      byIndex.get(item.uploadIndex ?? index) ||
+      byName.get(item.fileName || item.name || item.title) ||
+      {}
+
+    const src =
+      item.src ||
+      item.previewUrl ||
+      item.dataUrl ||
+      preview.src ||
+      preview.previewUrl ||
+      preview.dataUrl ||
+      preview.objectUrl ||
+      item.objectUrl
+
+    return {
+      ...preview,
+      ...item,
+      originalUploadId: item.originalUploadId || preview.id,
+      uploadIndex: item.uploadIndex ?? preview.uploadIndex ?? index,
+      title: item.title || item.fileName || preview.title || preview.fileName || preview.name,
+      fileName: item.fileName || preview.fileName || preview.name,
+      src,
+      previewUrl: item.previewUrl || item.src || item.dataUrl || preview.previewUrl || preview.src || preview.dataUrl || src,
+      dataUrl: item.dataUrl || preview.dataUrl,
+      objectUrl: item.objectUrl || preview.objectUrl,
+      source: 'uploaded',
+      isUploaded: true,
+      isPlaceholder: false,
+    }
+  })
+}
+
 export function resolveClusterPhotos({
+  cluster = {},
+  uploadedPhotos = [],
+  minCount = 3,
+  maxCount = 6,
+} = {}) {
+  return resolveClusterPhotoMeta({ cluster, uploadedPhotos, minCount, maxCount }).photos
+}
+
+export function resolveClusterPhotoMeta({
   cluster = {},
   uploadedPhotos = [],
   minCount = 3,
@@ -179,20 +232,8 @@ export function resolveClusterPhotos({
       source: item.source || 'preview',
     }))
 
-  const merged = [...uploadItems, ...assetItems, ...previewItems]
-  if (import.meta.env.DEV && uploadItems.length) {
-    console.log('cluster displayPhotos', {
-      clusterId: cluster.id,
-      uploadedPhotos: uploadItems.map(({ id, title, fileName, src, previewUrl, assignedClusterId }) => ({
-        id,
-        title,
-        fileName,
-        src,
-        previewUrl,
-        assignedClusterId,
-      })),
-    })
-  }
+  const demoItems = [...assetItems, ...previewItems].filter((item) => item.src)
+  const merged = [...uploadItems, ...demoItems]
 
   const seen = new Set()
   const unique = merged.filter((item) => {
@@ -207,5 +248,24 @@ export function resolveClusterPhotos({
     unique.push({ ...fallback, id: `${cluster.id || 'cluster'}-fallback-${unique.length}` })
   }
 
-  return unique.slice(0, maxCount)
+  const photos = unique.slice(0, maxCount)
+  const displayedPhotoCount = unique.length
+  const sourcePhotoCount = cluster.sourcePhotoCount || cluster.rawPhotoCount || cluster.photoCount || 0
+  const countLabel =
+    displayedPhotoCount > 0 && sourcePhotoCount > displayedPhotoCount
+      ? `已检索 ${sourcePhotoCount} 张，预览 ${displayedPhotoCount} 张`
+      : displayedPhotoCount > 0
+        ? `${displayedPhotoCount} 张照片`
+        : '暂无可预览照片'
+
+  return {
+    photos,
+    uploadedPhotos: uploadItems,
+    demoPhotos: demoItems,
+    displayedPhotoCount,
+    sourcePhotoCount,
+    hasUploadedPhotos: uploadItems.length > 0,
+    hasDisplayablePhotos: displayedPhotoCount > 0,
+    countLabel,
+  }
 }

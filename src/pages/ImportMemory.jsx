@@ -95,17 +95,15 @@ export default function ImportMemory({ initialState, onBack, onStart }) {
   }
 
   const handleFiles = async (event) => {
-    uploadedFiles.forEach((file) => {
-      if (file.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(file.previewUrl)
-    })
-
+    const baseIndex = uploadedFiles.length
     const files = await Promise.all(Array.from(event.target.files || []).map(async (file, index) => {
       const objectUrl = URL.createObjectURL(file)
       const dataUrl = await readFileAsDataUrl(file)
       const previewUrl = dataUrl || objectUrl
+      const uploadIndex = baseIndex + index
       return {
-        id: `${file.name}-${file.lastModified}-${file.size}`,
-        uploadIndex: index,
+        id: `${file.name}-${file.lastModified}-${file.size}-${uploadIndex}`,
+        uploadIndex,
         title: file.name,
         fileName: file.name,
         name: file.name,
@@ -123,7 +121,8 @@ export default function ImportMemory({ initialState, onBack, onStart }) {
         uploadedAt: new Date().toISOString(),
       }
     }))
-    setUploadedFiles(files)
+    setUploadedFiles((current) => [...current, ...files])
+    event.target.value = ''
   }
 
   return (

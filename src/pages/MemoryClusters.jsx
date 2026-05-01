@@ -4,6 +4,7 @@ import Button from '../components/Button.jsx'
 import MemoryClusterCard from '../components/MemoryClusterCard.jsx'
 import PageShell from '../components/PageShell.jsx'
 import { classificationModeLabels, sourceLabels } from '../data/mockData.js'
+import { mergeUploadedPhotoPreviews } from '../data/photoAssets.js'
 
 export default function MemoryClusters({
   analysisResult,
@@ -16,12 +17,9 @@ export default function MemoryClusters({
 }) {
   const [basisPanelOpen, setBasisPanelOpen] = useState(false)
   const clusters = analysisResult.memoryClusters
-  const uploadedPhotoByName = new Map(
-    uploadedPhotoPreviews.map((photo) => [photo.fileName || photo.name || photo.title, photo]),
-  )
-  const uploadedPhotoById = new Map(uploadedPhotoPreviews.map((photo) => [photo.id, photo]))
-  const uploadedPhotoByIndex = new Map(
-    uploadedPhotoPreviews.map((photo, index) => [photo.uploadIndex ?? index, photo]),
+  const normalizedUploads = mergeUploadedPhotoPreviews(
+    analysisResult.uploadClassificationResults || [],
+    uploadedPhotoPreviews,
   )
   const firstClusterId = featuredClusterId || analysisResult.featuredClusterId || clusters[0]?.id || 'graduation-2018'
   const modeLabel = classificationModeLabels[analysisResult.selectedClassificationMode] || '按人生阶段整理'
@@ -88,40 +86,9 @@ export default function MemoryClusters({
             key={cluster.id}
             cluster={cluster}
             featured={cluster.id === firstClusterId}
-            uploadedPhotos={(analysisResult.uploadClassificationResults || []).filter(
+            uploadedPhotos={normalizedUploads.filter(
               (item) => item.assignedClusterId === cluster.id,
-            ).map((item, index) => {
-              const preview =
-                uploadedPhotoById.get(item.originalUploadId || item.id) ||
-                uploadedPhotoByIndex.get(item.uploadIndex ?? index) ||
-                uploadedPhotoByName.get(item.fileName || item.name || item.title) ||
-                {}
-              return {
-                ...preview,
-                ...item,
-                originalUploadId: item.originalUploadId || preview.id,
-                uploadIndex: item.uploadIndex ?? preview.uploadIndex ?? index,
-                src:
-                  item.src ||
-                  item.previewUrl ||
-                  item.dataUrl ||
-                  preview.src ||
-                  preview.previewUrl ||
-                  preview.dataUrl,
-                previewUrl:
-                  item.previewUrl ||
-                  item.src ||
-                  item.dataUrl ||
-                  preview.previewUrl ||
-                  preview.src ||
-                  preview.dataUrl,
-                dataUrl: item.dataUrl || preview.dataUrl,
-                objectUrl: item.objectUrl || preview.objectUrl,
-                source: 'uploaded',
-                isUploaded: true,
-                isPlaceholder: false,
-              }
-            })}
+            )}
             onOpen={onOpenCluster}
             onRename={onRenameCluster}
             onDelete={onDeleteCluster}
