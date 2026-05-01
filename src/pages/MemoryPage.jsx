@@ -3,6 +3,7 @@ import { Camera, Eye, ImagePlus, Send, Settings2, Sparkles, X } from 'lucide-rea
 import Button from '../components/Button.jsx'
 import DisplayTitle from '../components/DisplayTitle.jsx'
 import GlassCard from '../components/GlassCard.jsx'
+import MemoryManagePanel, { getVisibilityCopy } from '../components/MemoryManagePanel.jsx'
 import PageShell from '../components/PageShell.jsx'
 import PhotoCard from '../components/PhotoCard.jsx'
 import PhotoGrid from '../components/PhotoGrid.jsx'
@@ -28,10 +29,16 @@ export default function MemoryPage({
   onHome,
   onAddArchivedRecentPhotos,
   onRenameCluster,
+  onUpdateCluster,
+  onDeleteCluster,
+  onSetCoverPhoto,
+  onRemovePhoto,
+  onUpdateVisibility,
   onOpenCluster,
   onViewClusters,
 }) {
   const [archivePanelOpen, setArchivePanelOpen] = useState(false)
+  const [manageOpen, setManageOpen] = useState(false)
   const [recentFiles, setRecentFiles] = useState([])
   const [archiveMode, setArchiveMode] = useState('current')
   const [archivePrompt, setArchivePrompt] = useState('')
@@ -43,7 +50,11 @@ export default function MemoryPage({
     analysisResult.memoryClusters.find((item) => item.id === cluster.id) || cluster
   const page =
     generatedPage?.clusterId === currentCluster.id
-      ? generatedPage
+      ? {
+          ...generatedPage,
+          title: `你的「${currentCluster.title}」回忆页已生成`,
+          timeRange: currentCluster.timeRange,
+        }
       : {
           id: `page-${currentCluster.id}`,
           clusterId: currentCluster.id,
@@ -67,6 +78,7 @@ export default function MemoryPage({
     maxCount: 6,
   })
   const displayPhotos = photoMeta.photos
+  const visibilityCopy = getVisibilityCopy(currentCluster.visibility || page.visibility)
   const featuredPost =
     currentCluster.relatedPostsData?.[0] ||
     posts.find((post) => post.id === page.featuredPostId)
@@ -84,7 +96,15 @@ export default function MemoryPage({
       title={page.title}
       eyebrow="回忆页生成结果"
       onBack={onBack}
-      actions={<Button variant="secondary" onClick={onHome}>回到首页</Button>}
+      actions={
+        <div className="flex flex-wrap gap-3">
+          <Button variant="secondary" onClick={() => setManageOpen(true)}>
+            <Settings2 size={17} />
+            管理
+          </Button>
+          <Button variant="secondary" onClick={onHome}>回到首页</Button>
+        </div>
+      }
     >
       <div className="mx-auto max-w-4xl">
         <GlassCard className="overflow-hidden rounded-[1.75rem]">
@@ -117,6 +137,9 @@ export default function MemoryPage({
             <section>
               <h3 className="mb-3 text-xl font-semibold text-white">AI 生成短文</h3>
               <p className="text-sm leading-8 text-slate-300">{page.essay}</p>
+              <p className="mt-4 rounded-2xl border border-sky-200/14 bg-sky-200/[0.075] px-4 py-3 text-sm leading-6 text-sky-100">
+                {visibilityCopy.description}
+              </p>
             </section>
 
             <section>
@@ -125,7 +148,15 @@ export default function MemoryPage({
                 精选照片
               </h3>
               <p className="mb-4 text-sm text-slate-400">{photoMeta.countLabel}</p>
-              <PhotoGrid photos={displayPhotos} onPhotoPreview={setLightboxIndex} />
+              <PhotoGrid
+                photos={displayPhotos}
+                onPhotoPreview={setLightboxIndex}
+                onSetCover={(photo) => onSetCoverPhoto?.(currentCluster.id, photo)}
+                onRemovePhoto={(photo) => {
+                  onRemovePhoto?.(currentCluster.id, photo)
+                  setLightboxIndex(null)
+                }}
+              />
             </section>
 
             <div className="grid gap-5 md:grid-cols-2">
@@ -166,11 +197,11 @@ export default function MemoryPage({
             <Sparkles size={17} />
             保存到我的时光回廊
           </Button>
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={() => onUpdateVisibility?.(currentCluster.id, 'private')}>
             <Eye size={17} />
             仅自己可见
           </Button>
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={() => onUpdateVisibility?.(currentCluster.id, 'qzone')}>
             <Send size={17} />
             分享到 QQ 空间
           </Button>
@@ -259,6 +290,15 @@ export default function MemoryPage({
           onClose={() => setLightboxIndex(null)}
         />
       ) : null}
+      <MemoryManagePanel
+        open={manageOpen}
+        cluster={currentCluster}
+        coverPhoto={displayPhotos[0]}
+        onClose={() => setManageOpen(false)}
+        onUpdateCluster={onUpdateCluster}
+        onUpdateVisibility={onUpdateVisibility}
+        onDeleteCluster={onDeleteCluster}
+      />
     </PageShell>
   )
 }

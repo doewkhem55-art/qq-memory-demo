@@ -167,3 +167,22 @@ npm run build
 继续开发注意：
 - 下一阶段进入 3C 前，应先确认 3B 照片系统、Lightbox、上传图片和持续归档链路都稳定显示。
 - 暂时不要进入相册管理统一，不要接真实后端，不要重做首页。
+## 3C checkpoint：相册管理产品化完成
+
+当前第三阶段 3C 已完成并保存为可继续开发 checkpoint。
+
+已完成内容：
+- 所有记忆包统一支持重命名，覆盖默认自动分类、自定义 AI 分类、持续归档和上传图片参与生成的相册包。
+- 记忆包描述可在统一管理面板中编辑，MemoryClusters、MemoryDetail、MemoryPage 同步读取同一份 cluster state。
+- 支持删除 / 隐藏任意记忆包，只从当前 Demo state 中移除，不删除 public/demo-photos 素材；详情页或回忆页删除后自动返回 MemoryClusters。
+- 新增统一 `MemoryManagePanel`，包含封面预览、标题、描述、可见性和删除入口。
+- MemoryDetail 与 MemoryPage 右上角新增“管理”入口，MemoryClusters 卡片新增轻量管理入口。
+- 支持轻量可见性状态：仅自己可见、可分享给好友、可同步到 QQ 空间，默认按仅自己可见表达隐私控制。
+- 详情页 / 回忆页照片墙支持设为封面、从记忆包移除；封面同步影响列表卡片、详情页顶部封面和回忆页封面。
+- 移除照片只影响当前记忆包和当前 Demo state，不删除原始素材；移除当前封面后自动回退到剩余第一张可显示照片。
+- PhotoLightbox、curated 图片、上传图片优先级、recent 持续归档入口和二次上传追加链路保持可用。
+- `npm run build` 已通过。
+
+后续继续开发注意：
+- 不要回退 3C 的统一管理状态函数与 `MemoryManagePanel`。
+- 后续如做视觉精修，应保留照片级操作、封面覆盖顺序、removedPhotoIds 过滤和可见性状态。

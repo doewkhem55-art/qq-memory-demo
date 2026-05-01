@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Brain, Database, X } from 'lucide-react'
 import Button from '../components/Button.jsx'
+import MemoryManagePanel from '../components/MemoryManagePanel.jsx'
 import MemoryClusterCard from '../components/MemoryClusterCard.jsx'
 import PageShell from '../components/PageShell.jsx'
 import { classificationModeLabels, sourceLabels } from '../data/mockData.js'
-import { mergeUploadedPhotoPreviews } from '../data/photoAssets.js'
+import { mergeUploadedPhotoPreviews, resolveClusterPhotoMeta } from '../data/photoAssets.js'
 
 export default function MemoryClusters({
   analysisResult,
@@ -13,9 +14,12 @@ export default function MemoryClusters({
   onBack,
   onOpenCluster,
   onRenameCluster,
+  onUpdateCluster,
   onDeleteCluster,
+  onUpdateVisibility,
 }) {
   const [basisPanelOpen, setBasisPanelOpen] = useState(false)
+  const [managedClusterId, setManagedClusterId] = useState(null)
   const clusters = analysisResult.memoryClusters
   const normalizedUploads = mergeUploadedPhotoPreviews(
     analysisResult.uploadClassificationResults || [],
@@ -48,6 +52,13 @@ export default function MemoryClusters({
   const copy = pageCopy[analysisResult.selectedClassificationMode] || pageCopy.life_stage
   const dataSources = ['qq_album', 'qq_zone', 'friends', 'local_album']
   const generatedDimensions = clusters.map((cluster) => cluster.title)
+  const managedCluster = clusters.find((cluster) => cluster.id === managedClusterId)
+  const managedUploads = normalizedUploads.filter(
+    (item) => item.assignedClusterId === managedCluster?.id,
+  )
+  const managedPhotoMeta = managedCluster
+    ? resolveClusterPhotoMeta({ cluster: managedCluster, uploadedPhotos: managedUploads, minCount: 3, maxCount: 4 })
+    : { photos: [] }
 
   return (
     <PageShell
@@ -92,9 +103,19 @@ export default function MemoryClusters({
             onOpen={onOpenCluster}
             onRename={onRenameCluster}
             onDelete={onDeleteCluster}
+            onManage={setManagedClusterId}
           />
         ))}
       </div>
+      <MemoryManagePanel
+        open={Boolean(managedCluster)}
+        cluster={managedCluster}
+        coverPhoto={managedPhotoMeta.photos[0]}
+        onClose={() => setManagedClusterId(null)}
+        onUpdateCluster={onUpdateCluster}
+        onUpdateVisibility={onUpdateVisibility}
+        onDeleteCluster={onDeleteCluster}
+      />
       {basisPanelOpen ? (
         <ClassificationBasisPanel
           modeLabel={modeLabel}

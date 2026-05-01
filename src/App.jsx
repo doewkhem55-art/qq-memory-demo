@@ -6,7 +6,7 @@ import MemoryClusters from './pages/MemoryClusters.jsx'
 import MemoryDetail from './pages/MemoryDetail.jsx'
 import MemoryPage from './pages/MemoryPage.jsx'
 import { mockAnalysisResult } from './data/mockData.js'
-import { getThemePhotoAssets, mergeUploadedPhotoPreviews } from './data/photoAssets.js'
+import { mergeUploadedPhotoPreviews } from './data/photoAssets.js'
 
 const initialDemoState = {
   selectedSources: ['qq_album', 'qq_zone', 'friends', 'local_album'],
@@ -46,6 +46,29 @@ export default function App() {
         analysisResult: updatedResult,
       }
     })
+  }
+
+  const getPhotoIdentity = (photo = {}) =>
+    photo.id || photo.originalUploadId || photo.src || photo.previewUrl || photo.dataUrl || photo.objectUrl
+
+  const updateMemoryCluster = (clusterId, updates) => {
+    updateAnalysisResult((baseResult) => ({
+      ...baseResult,
+      memoryClusters: baseResult.memoryClusters.map((cluster) => {
+        if (cluster.id !== clusterId) return cluster
+        const nextUpdates = typeof updates === 'function' ? updates(cluster) : updates
+        return {
+          ...cluster,
+          ...nextUpdates,
+          updatedAt: new Date().toISOString(),
+        }
+      }),
+      uploadClassificationResults: (baseResult.uploadClassificationResults || []).map((item) =>
+        item.assignedClusterId === clusterId && updates?.title
+          ? { ...item, assignedClusterTitle: updates.title }
+          : item,
+      ),
+    }))
   }
 
   const addMemoryCluster = (newCluster, uploadResults = []) => {
@@ -171,28 +194,12 @@ export default function App() {
   const renameMemoryCluster = (clusterId, nextTitle) => {
     const trimmedTitle = nextTitle?.trim()
     if (!trimmedTitle) return
-
-    updateAnalysisResult((baseResult) => ({
-      ...baseResult,
-      memoryClusters: baseResult.memoryClusters.map((cluster) =>
-        cluster.id === clusterId && cluster.isUserArchive
-          ? { ...cluster, title: trimmedTitle, updatedAt: new Date().toISOString() }
-          : cluster,
-      ),
-      uploadClassificationResults: (baseResult.uploadClassificationResults || []).map((item) =>
-        item.assignedClusterId === clusterId
-          ? { ...item, assignedClusterTitle: trimmedTitle }
-          : item,
-      ),
-    }))
+    updateMemoryCluster(clusterId, { title: trimmedTitle })
   }
 
   const deleteMemoryCluster = (clusterId) => {
     setDemoState((current) => {
       const baseResult = current.analysisResult || mockAnalysisResult
-      const target = baseResult.memoryClusters.find((cluster) => cluster.id === clusterId)
-      if (!target?.isUserArchive) return current
-
       const memoryClusters = baseResult.memoryClusters.filter((cluster) => cluster.id !== clusterId)
       const nextActiveClusterId =
         current.activeClusterId === clusterId
@@ -217,6 +224,60 @@ export default function App() {
         },
       }
     })
+  }
+
+  const setClusterCoverPhoto = (clusterId, photo) => {
+    const coverPhotoId = typeof photo === 'string' ? photo : getPhotoIdentity(photo)
+    if (!coverPhotoId) return
+    updateMemoryCluster(clusterId, { coverPhotoId })
+  }
+
+  const removePhotoFromCluster = (clusterId, photo) => {
+    const photoId = typeof photo === 'string' ? photo : getPhotoIdentity(photo)
+    if (!photoId) return
+    const isUploadedPhoto =
+      typeof photo === 'object' && (photo.isUploaded || photo.source === 'uploaded')
+    setDemoState((current) => {
+      const baseResult = current.analysisResult || mockAnalysisResult
+      return {
+        ...current,
+        analysisResult: {
+          ...baseResult,
+          memoryClusters: baseResult.memoryClusters.map((cluster) => {
+            if (cluster.id !== clusterId) return cluster
+            const removedPhotoIds = Array.from(new Set([...(cluster.removedPhotoIds || []), photoId]))
+            const relatedPhotoIds = (cluster.relatedPhotoIds || []).filter((id) => id !== photoId)
+            const previewPhotos = (cluster.previewPhotos || []).filter(
+              (item) => getPhotoIdentity(item) !== photoId,
+            )
+            const uploadCount = (baseResult.uploadClassificationResults || []).filter(
+              (item) => item.assignedClusterId === clusterId && getPhotoIdentity(item) !== photoId,
+            ).length
+            const baseCount = cluster.sourcePhotoCount || cluster.rawPhotoCount || cluster.photoCount || 0
+            const nextCount = isUploadedPhoto ? baseCount : Math.max(0, baseCount - 1)
+            return {
+              ...cluster,
+              removedPhotoIds,
+              relatedPhotoIds,
+              previewPhotos,
+              coverPhotoId: cluster.coverPhotoId === photoId ? undefined : cluster.coverPhotoId,
+              rawPhotoCount: nextCount,
+              sourcePhotoCount: nextCount,
+              photoCount: nextCount + uploadCount,
+              localUploadCount: uploadCount,
+              updatedAt: new Date().toISOString(),
+            }
+          }),
+          uploadClassificationResults: (baseResult.uploadClassificationResults || []).filter(
+            (item) => item.assignedClusterId !== clusterId || getPhotoIdentity(item) !== photoId,
+          ),
+        },
+      }
+    })
+  }
+
+  const updateClusterVisibility = (clusterId, visibility) => {
+    updateMemoryCluster(clusterId, { visibility })
   }
 
   if (route === 'import') {
@@ -276,7 +337,9 @@ export default function App() {
           navigate('detail')
         }}
         onRenameCluster={renameMemoryCluster}
+        onUpdateCluster={updateMemoryCluster}
         onDeleteCluster={deleteMemoryCluster}
+        onUpdateVisibility={updateClusterVisibility}
       />
     )
   }
@@ -295,6 +358,14 @@ export default function App() {
           }))
           navigate('memoryPage')
         }}
+        onUpdateCluster={updateMemoryCluster}
+        onDeleteCluster={(clusterId) => {
+          deleteMemoryCluster(clusterId)
+          navigate('clusters')
+        }}
+        onSetCoverPhoto={setClusterCoverPhoto}
+        onRemovePhoto={removePhotoFromCluster}
+        onUpdateVisibility={updateClusterVisibility}
       />
     )
   }
@@ -309,6 +380,14 @@ export default function App() {
         onHome={() => navigate('home')}
         onAddArchivedRecentPhotos={addArchivedRecentPhotos}
         onRenameCluster={renameMemoryCluster}
+        onUpdateCluster={updateMemoryCluster}
+        onDeleteCluster={(clusterId) => {
+          deleteMemoryCluster(clusterId)
+          navigate('clusters')
+        }}
+        onSetCoverPhoto={setClusterCoverPhoto}
+        onRemovePhoto={removePhotoFromCluster}
+        onUpdateVisibility={updateClusterVisibility}
         onOpenCluster={(clusterId) => {
           setDemoState((current) => ({
             ...current,

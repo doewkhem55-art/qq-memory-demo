@@ -5,6 +5,7 @@ import {
   Check,
   MessageCircle,
   Pencil,
+  Settings2,
   ShieldCheck,
   Trash2,
   UsersRound,
@@ -24,11 +25,12 @@ export default function MemoryClusterCard({
   onOpen,
   onRename,
   onDelete,
+  onManage,
 }) {
   const [editing, setEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState(cluster.title)
   const [lightboxIndex, setLightboxIndex] = useState(null)
-  const canManage = cluster.isUserArchive && onRename && onDelete
+  const canManage = Boolean(onRename || onDelete || onManage)
   const photoMeta = resolveClusterPhotoMeta({ cluster, uploadedPhotos, minCount: 3, maxCount: 4 })
   const previews = photoMeta.photos
   const localUploadLabel = cluster.localUploadCount ? `本地 ${cluster.localUploadCount}` : null
@@ -41,7 +43,7 @@ export default function MemoryClusterCard({
   }
 
   const handleDelete = () => {
-    if (window.confirm('删除这个新归档相册？本地图片不会被删除，只会移除当前 Demo 状态。')) {
+    if (window.confirm('确认隐藏这个记忆包？本地图片不会被删除，只会从当前 Demo 状态中移除。')) {
       onDelete(cluster.id)
     }
   }
@@ -116,12 +118,21 @@ export default function MemoryClusterCard({
           )}
           {canManage && !editing ? (
             <div className="flex shrink-0 items-center gap-2">
-              <button onClick={() => { setDraftTitle(cluster.title); setEditing(true) }} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.055] text-slate-200 transition hover:bg-white/[0.12]" aria-label="重命名相册">
+              {onManage ? (
+                <button onClick={() => onManage(cluster.id)} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.055] text-slate-200 transition hover:bg-white/[0.12]" aria-label="管理记忆包">
+                  <Settings2 size={15} />
+                </button>
+              ) : null}
+              {onRename ? (
+                <button onClick={() => { setDraftTitle(cluster.title); setEditing(true) }} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.055] text-slate-200 transition hover:bg-white/[0.12]" aria-label="重命名相册">
                 <Pencil size={15} />
               </button>
-              <button onClick={handleDelete} className="flex h-9 w-9 items-center justify-center rounded-full border border-rose-200/15 bg-rose-300/[0.08] text-rose-100 transition hover:bg-rose-300/[0.16]" aria-label="删除相册">
+              ) : null}
+              {onDelete ? (
+                <button onClick={handleDelete} className="flex h-9 w-9 items-center justify-center rounded-full border border-rose-200/15 bg-rose-300/[0.08] text-rose-100 transition hover:bg-rose-300/[0.16]" aria-label="删除相册">
                 <Trash2 size={15} />
               </button>
+              ) : null}
             </div>
           ) : null}
         </div>

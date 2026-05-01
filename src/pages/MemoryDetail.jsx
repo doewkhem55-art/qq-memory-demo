@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { ArrowRight, Camera, MessageCircle, Sparkles, UsersRound } from 'lucide-react'
+import { ArrowRight, Camera, MessageCircle, Settings2, Sparkles, UsersRound } from 'lucide-react'
 import Button from '../components/Button.jsx'
 import GlassCard from '../components/GlassCard.jsx'
+import MemoryManagePanel, { getVisibilityCopy } from '../components/MemoryManagePanel.jsx'
 import PageShell from '../components/PageShell.jsx'
 import PhotoCard from '../components/PhotoCard.jsx'
 import PhotoGrid from '../components/PhotoGrid.jsx'
@@ -13,10 +14,21 @@ import { comments, photos, posts, repairSuggestions, timelineEvents } from '../d
 import { resolveClusterPhotoMeta } from '../data/photoAssets.js'
 import { generateMemoryPage, repairMissingMemories } from '../services/aiMemoryService.js'
 
-export default function MemoryDetail({ cluster, analysisResult, onBack, onGenerated }) {
+export default function MemoryDetail({
+  cluster,
+  analysisResult,
+  onBack,
+  onGenerated,
+  onUpdateCluster,
+  onDeleteCluster,
+  onSetCoverPhoto,
+  onRemovePhoto,
+  onUpdateVisibility,
+}) {
   const [generating, setGenerating] = useState(false)
   const [repairState, setRepairState] = useState(null)
   const [lightboxIndex, setLightboxIndex] = useState(null)
+  const [manageOpen, setManageOpen] = useState(false)
   const currentCluster =
     analysisResult.memoryClusters.find((item) => item.id === cluster.id) || cluster
   const clusterPhotos = photos.filter((photo) => currentCluster.relatedPhotoIds.includes(photo.id))
@@ -43,6 +55,7 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
     maxCount: 6,
   })
   const displayPhotos = photoMeta.photos
+  const visibilityCopy = getVisibilityCopy(currentCluster.visibility)
   const repair = repairSuggestions.find((item) => item.clusterId === currentCluster.id)
   const events = timelineEvents[currentCluster.id] || [
     { id: `${currentCluster.id}-event`, date: currentCluster.timeRange, title: currentCluster.title, description: currentCluster.summary },
@@ -65,7 +78,18 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
       title={currentCluster.title}
       eyebrow={`记忆详情 · ${currentCluster.timeRange}`}
       onBack={onBack}
-      actions={<Button onClick={handleGenerate} disabled={generating}>{generating ? '生成中……' : '生成回忆页'}<ArrowRight size={17} /></Button>}
+      actions={
+        <div className="flex flex-wrap gap-3">
+          <Button variant="secondary" onClick={() => setManageOpen(true)}>
+            <Settings2 size={17} />
+            管理
+          </Button>
+          <Button onClick={handleGenerate} disabled={generating}>
+            {generating ? '生成中...' : '生成回忆页'}
+            <ArrowRight size={17} />
+          </Button>
+        </div>
+      }
     >
       <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
         <div className="space-y-5">
@@ -92,6 +116,9 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
             </div>
             <h2 className="text-2xl font-semibold text-white">AI 摘要</h2>
             <p className="mt-4 text-sm leading-7 text-slate-300">{currentCluster.summary}</p>
+            <div className="mt-4 rounded-2xl border border-sky-200/14 bg-sky-200/[0.075] px-4 py-3 text-sm leading-6 text-sky-100">
+              {visibilityCopy.description}
+            </div>
             {uploadedPhotos.length ? (
               <p className="mt-4 rounded-2xl bg-sky-200/10 px-4 py-3 text-sm text-sky-100">
                 已有 {uploadedPhotos.length} 张你上传的本地照片被归入这个记忆包。
@@ -139,7 +166,15 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
               照片墙
             </h2>
             <p className="mb-4 text-sm text-slate-400">{photoMeta.countLabel}</p>
-            <PhotoGrid photos={displayPhotos} onPhotoPreview={setLightboxIndex} />
+            <PhotoGrid
+              photos={displayPhotos}
+              onPhotoPreview={setLightboxIndex}
+              onSetCover={(photo) => onSetCoverPhoto?.(currentCluster.id, photo)}
+              onRemovePhoto={(photo) => {
+                onRemovePhoto?.(currentCluster.id, photo)
+                setLightboxIndex(null)
+              }}
+            />
           </GlassCard>
 
           <div className="grid gap-5 md:grid-cols-2">
@@ -202,6 +237,15 @@ export default function MemoryDetail({ cluster, analysisResult, onBack, onGenera
           onClose={() => setLightboxIndex(null)}
         />
       ) : null}
+      <MemoryManagePanel
+        open={manageOpen}
+        cluster={currentCluster}
+        coverPhoto={displayPhotos[0]}
+        onClose={() => setManageOpen(false)}
+        onUpdateCluster={onUpdateCluster}
+        onUpdateVisibility={onUpdateVisibility}
+        onDeleteCluster={onDeleteCluster}
+      />
     </PageShell>
   )
 }

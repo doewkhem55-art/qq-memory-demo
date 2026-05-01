@@ -344,6 +344,18 @@ export function resolveClusterPhotoMeta({
   minCount = 3,
   maxCount = 6,
 } = {}) {
+  const removedPhotoIds = new Set(cluster.removedPhotoIds || [])
+  const keepPhoto = (item = {}) => {
+    const keys = [
+      item.id,
+      item.originalUploadId,
+      item.src,
+      item.previewUrl,
+      item.dataUrl,
+      item.objectUrl,
+    ].filter(Boolean)
+    return !keys.some((key) => removedPhotoIds.has(key))
+  }
   const uploadItems = normalizeUploadedPhotos(uploadedPhotos).filter((item) => item.src)
   const assetItems = getPhotoAssetsForCluster(cluster, minCount)
   const previewItems = (cluster.previewPhotos || [])
@@ -355,7 +367,7 @@ export function resolveClusterPhotoMeta({
     }))
 
   const demoItems = [...assetItems, ...previewItems].filter((item) => item.src)
-  const merged = [...uploadItems, ...demoItems]
+  const merged = [...uploadItems, ...demoItems].filter(keepPhoto)
 
   const seen = new Set()
   const unique = merged.filter((item) => {
@@ -372,7 +384,22 @@ export function resolveClusterPhotoMeta({
       unique.push({ ...fallback, id: `${cluster.id || 'cluster'}-fallback-${unique.length}` })
   }
 
-  const photos = unique.slice(0, maxCount)
+  const coverIndex = unique.findIndex((item) => {
+    const keys = [
+      item.id,
+      item.originalUploadId,
+      item.src,
+      item.previewUrl,
+      item.dataUrl,
+      item.objectUrl,
+    ].filter(Boolean)
+    return keys.includes(cluster.coverPhotoId)
+  })
+  const orderedPhotos =
+    coverIndex > 0
+      ? [unique[coverIndex], ...unique.slice(0, coverIndex), ...unique.slice(coverIndex + 1)]
+      : unique
+  const photos = orderedPhotos.slice(0, maxCount)
   const displayedPhotoCount = unique.length
   const sourcePhotoCount = cluster.sourcePhotoCount || cluster.rawPhotoCount || cluster.photoCount || 0
   const countLabel =
