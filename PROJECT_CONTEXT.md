@@ -251,3 +251,24 @@ npm run build
 后续继续开发注意：
 - 当前版本可以进入 5A：部署与线上发布准备。
 - 后续优先准备公网预览链接、演示脚本和录制材料，不要在 5A 前继续新增复杂功能或重构主链路。
+
+## 5A checkpoint：部署与线上发布完成
+
+当前第五阶段 5A 已完成，可作为后续最终演示材料准备和比赛提交前检查的基础版本。
+
+已完成：
+- 项目已推送到 GitHub。
+- GitHub 仓库地址：https://github.com/doewkhem55-art/qq-memory-demo.git
+- Netlify 已从 GitHub `main` 分支成功部署。
+- 线上 Demo 链接：https://mellifluous-chaja-2ca41e.netlify.app
+- 部署方式：Branch 为 `main`，Build command 为 `npm run build`，Publish directory 为 `dist`。
+- 线上基础检查已通过：首页正常，动态 Hero 正常，开始整理链路正常，相册封面正常，详情页照片墙正常，图片放大正常，回忆页生成正常，保存 / 分享 / 继续归档反馈正常。
+
+部署注意事项：
+- 内置 curated Demo 图片在线上可正常访问。
+- 用户本地上传图片仍然是浏览器本地预览，不是云端持久化。
+- 比赛演示时应优先使用内置 Demo 路径，不依赖刷新后保留本地上传图片。
+
+后续继续开发注意：
+- 当前版本可以进入 5B：最终演示材料准备。
+- 不要在演示材料准备前新增复杂功能、改页面视觉或重构主链路。
